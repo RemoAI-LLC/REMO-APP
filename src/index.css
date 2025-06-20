@@ -1,0 +1,33 @@
+@custom-variant dark (&:is(.dark *));
+@import "tailwindcss";
+
+/* Light theme (default) */
+@theme {
+    --color-bg: #ffffff;
+    --color-text: #222222;
+}
+
+/* Dark theme override */
+@layer theme {
+    .dark {
+        --color-bg: #18181b;
+        --color-text: #f4f4f5;
+    }
+}
+
+html,
+body,
+#root {
+    height: 100%;
+    width: 100%;
+}
+
+button {
+    cursor: pointer;
+}
+
+/* Optionally: make other clickable tags behave the same */
+a,
+.clickable {
+    cursor: pointer;
+}

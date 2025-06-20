@@ -1,0 +1,29 @@
+{
+  "appId": "com.remoai.agents",
+  "productName": "RemoAI Agents",
+  "directories": {
+    "output": "release",
+    "buildResources": "assets"
+  },
+  "files": [
+    "dist/**/*",
+    "dist/desktop/main.js"
+  ],
+  "asar": true,
+  "mac": {
+    "target": ["dmg"],
+    "category": "public.app-category.productivity"
+  },
+  "win": {
+    "target": ["nsis"],
+    "icon": "public/favicon.ico"
+  },
+  "linux": {
+    "target": ["AppImage"],
+    "category": "Office"
+  },
+  "nsis": {
+    "oneClick": false,
+    "allowToChangeInstallationDirectory": true
+  }
+}

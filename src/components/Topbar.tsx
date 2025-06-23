@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FaUserCircle } from "react-icons/fa";
 import { IoChevronDownSharp, IoChevronUpSharp } from "react-icons/io5";
-import { usePrivy } from "@privy-io/react-auth";
+import { useLogin, useLogout, usePrivy } from "@privy-io/react-auth"; // <-- update import
 
 const Topbar: React.FC = () => {
-  const { login, logout, authenticated, ready, user } = usePrivy();
+  const { authenticated, ready, user } = usePrivy();
+  const { login } = useLogin(); // <-- get login from Privy hook
+  const { logout } = useLogout(); // <-- get logout from Privy hook
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -34,31 +36,7 @@ const Topbar: React.FC = () => {
   };
 
   const getUserImage = () => {
-    if (!user) return "";
-
-    // Check for profile images from linked accounts
-    for (const account of user.linkedAccounts) {
-      // Check for Google OAuth account
-      if (account.type === "google_oauth") {
-        // Get profile image from Google People API
-        type GoogleOAuthAccount = {
-          type: "google_oauth";
-          picture?: string;
-        };
-        const googleUser = account as GoogleOAuthAccount;
-        if (googleUser.picture) {
-          return googleUser.picture;
-        }
-      }
-      if (account.type === "twitter_oauth" && account.profilePictureUrl) {
-        return account.profilePictureUrl;
-      }
-      if (account.type === "telegram" && account.photoUrl) {
-        return account.photoUrl;
-      }
-    }
-
-    return ""; // fallback to empty string if no profile image available
+    return "";
   };
 
   return (

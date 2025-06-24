@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@privy-io/react-auth": "^2.16.0",
     "@tailwindcss/vite": "^4.1.7",
     "@types/uuid": "^10.0.0",
     "i18next": "^25.2.1",

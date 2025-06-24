@@ -1,15 +1,24 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { useEffect, useRef, useState } from "react";
 
-const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://remo-server.onrender.com" ||
+  "http://localhost:8000";
+
+const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const { login, authenticated, ready } = usePrivy();
   const [loginError, setLoginError] = useState<string | null>(null);
   const loginAttempted = useRef(false);
+  const warmupSent = useRef(false);
 
   useEffect(() => {
-    // Reset loginAttempted when user is logged out, so login is retried
+    // Reset loginAttempted and warmupSent when user is logged out, so login and warmup are retried
     if (ready && !authenticated) {
       loginAttempted.current = false;
+      warmupSent.current = false;
     }
   }, [ready, authenticated]);
 
@@ -26,7 +35,34 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     }
   }, [ready, authenticated, login]);
 
-  if (!ready) return <div style={{height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>Loading...</div>;
+  // Warmup ping after successful authentication, only once per login session
+  useEffect(() => {
+    if (authenticated && ready && !warmupSent.current) {
+      warmupSent.current = true;
+      fetch(`${API_BASE_URL}/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "__warmup__",
+          conversation_history: [],
+        }),
+      }).catch(() => {}); // Ignore errors, this is just a warmup
+    }
+  }, [authenticated, ready]);
+
+  if (!ready)
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        Loading...
+      </div>
+    );
 
   if (loginError) {
     return (
@@ -56,4 +92,4 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   );
 };
 
-export default PrivyAuthGate; 
+export default PrivyAuthGate;

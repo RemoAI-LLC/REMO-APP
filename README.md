@@ -109,7 +109,7 @@ VITE_PRIVY_APP_ID=your-privy-app-id
 - **Electron** (desktop app)
 - **React Router** (routing)
 - **i18next** (internationalization)
-- **Privy** (authentication)
+- **Privy** (authentication) 
 
 ## Contributing
 Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoIosSend } from "react-icons/io";
 import { FaUser, FaRobot } from "react-icons/fa";
+import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 
 const placeholderText = "Hi I'm Remo! Your Personal AI Assistant";
 
@@ -9,6 +10,26 @@ const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
   "https://remo-server.onrender.com" ||
   "http://localhost:8000";
+
+// Type declarations for Web Speech API
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: any) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: any) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
 
 interface Message {
   role: "user" | "assistant";
@@ -20,7 +41,157 @@ const Home: React.FC = () => {
   const [inputText, setInputText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [transcript, setTranscript] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const currentTranscriptRef = useRef<string>("");
+
+  // Initialize speech recognition
+  useEffect(() => {
+    // Check if we're in a secure context (HTTPS or localhost)
+    const isSecureContext =
+      window.isSecureContext ||
+      window.location.protocol === "https:" ||
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+
+    if (!isSecureContext) {
+      console.warn("Speech recognition requires HTTPS or localhost");
+      alert(
+        "Speech recognition requires a secure connection (HTTPS). Please use HTTPS or localhost."
+      );
+      return;
+    }
+
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+
+      // Basic configuration
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false; // Only get final results
+      recognitionRef.current.lang = "en-US";
+
+      recognitionRef.current.onstart = () => {
+        console.log("Speech recognition started");
+        setIsListening(true);
+        setTranscript("");
+      };
+
+      recognitionRef.current.onresult = (event: any) => {
+        console.log("Speech recognition result received:", event);
+        const transcript = event.results[0][0].transcript;
+        console.log("Captured transcript:", transcript);
+
+        // Store in ref for immediate access
+        currentTranscriptRef.current = transcript;
+
+        // Update state for UI
+        setTranscript(transcript);
+
+        // Also set the input text so user can manually send if needed
+        setInputText(transcript);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error);
+        console.error("Error details:", event);
+        setIsRecording(false);
+        setIsListening(false);
+
+        // Handle specific errors with better messages
+        switch (event.error) {
+          case "not-allowed":
+            alert(
+              "Microphone permission denied. Please allow microphone access and try again."
+            );
+            break;
+          case "no-speech":
+            console.log(
+              "No speech detected - this is normal if you didn't speak"
+            );
+            // Don't show alert for no-speech, just log it
+            break;
+          case "network":
+            alert(
+              "Speech recognition service unavailable. This might be due to:\n• Browser compatibility issues\n• Microphone not working\n• Try refreshing the page"
+            );
+            break;
+          case "audio-capture":
+            alert(
+              "Microphone not found or not working. Please check your microphone and try again."
+            );
+            break;
+          case "service-not-allowed":
+            alert(
+              "Speech recognition service not allowed. Please check your browser settings."
+            );
+            break;
+          case "bad-grammar":
+            alert("Speech recognition grammar error. Please try again.");
+            break;
+          case "language-not-supported":
+            alert("Language not supported. Please try with English.");
+            break;
+          default:
+            console.warn("Unknown speech recognition error:", event.error);
+          // Don't show alert for unknown errors, just log them
+        }
+
+        // Clear transcript on error
+        setTranscript("");
+      };
+
+      recognitionRef.current.onend = () => {
+        console.log("=== SPEECH RECOGNITION ENDED ===");
+        console.log("Current transcript state:", transcript);
+        console.log("Current transcript ref:", currentTranscriptRef.current);
+
+        setIsListening(false);
+        setIsRecording(false);
+
+        // Use the ref value which is immediately available
+        const finalTranscript = currentTranscriptRef.current.trim();
+        console.log("Final transcript (from ref):", finalTranscript);
+        console.log("Final transcript length:", finalTranscript.length);
+
+        if (finalTranscript) {
+          console.log(
+            "✅ Transcript found, sending message immediately:",
+            finalTranscript
+          );
+
+          // Clear any existing timeout
+          if (voiceTimeoutRef.current) {
+            clearTimeout(voiceTimeoutRef.current);
+            voiceTimeoutRef.current = null;
+          }
+
+          // Send the message immediately
+          sendVoiceMessage(finalTranscript);
+
+          // Clear the ref, transcript, and input text immediately
+          currentTranscriptRef.current = "";
+          setTranscript("");
+          setInputText("");
+        } else {
+          console.log("❌ No transcript found, not sending message");
+        }
+
+        // Clear transcript after a short delay
+        setTimeout(() => {
+          console.log("Clearing transcript state");
+          setTranscript("");
+        }, 100);
+      };
+    } else {
+      console.warn("Speech recognition not supported in this browser");
+    }
+  }, []); // Remove transcript dependency
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = () => {
@@ -30,6 +201,15 @@ const Home: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (voiceTimeoutRef.current) {
+        clearTimeout(voiceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,6 +266,115 @@ const Home: React.FC = () => {
     }
   };
 
+  const sendVoiceMessage = async (voiceText: string) => {
+    console.log("sendVoiceMessage called with:", voiceText);
+    if (!voiceText.trim()) {
+      console.log("sendVoiceMessage early return - empty voiceText");
+      return;
+    }
+
+    console.log("Creating user message for voice input");
+    const userMessage: Message = {
+      role: "user",
+      content: voiceText,
+      timestamp: new Date(),
+    };
+
+    // Add user message to chat immediately
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setIsLoading(true);
+
+    try {
+      console.log("Sending voice message to API:", voiceText);
+      const response = await fetch(`${API_BASE_URL}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: voiceText,
+          conversation_history: [], // Start with empty history for now
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get response from Remo");
+      }
+
+      const data = await response.json();
+      console.log("Received response from Remo:", data.response);
+
+      const assistantMessage: Message = {
+        role: "assistant",
+        content: data.response,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error("Error sending voice message:", error);
+      const errorMessage: Message = {
+        role: "assistant",
+        content: "Sorry, I encountered an error. Please try again.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      alert(
+        "Speech recognition is not supported in your browser. Please use Chrome or Edge."
+      );
+      return;
+    }
+
+    try {
+      if (isRecording) {
+        // Stop recording
+        console.log("Stopping recording manually...");
+
+        // Clear any existing timeout
+        if (voiceTimeoutRef.current) {
+          clearTimeout(voiceTimeoutRef.current);
+          voiceTimeoutRef.current = null;
+        }
+
+        recognitionRef.current.stop();
+        setIsRecording(false);
+        setIsListening(false);
+        console.log("Recording stopped manually");
+      } else {
+        // Start recording
+        console.log("Starting recording...");
+        console.log("Browser info:", navigator.userAgent);
+        console.log("HTTPS:", window.location.protocol === "https:");
+        console.log(
+          "Microphone permission:",
+          navigator.permissions ? "Available" : "Not available"
+        );
+
+        // Clear any previous transcript
+        setTranscript("");
+        setInputText("");
+        currentTranscriptRef.current = "";
+
+        recognitionRef.current.start();
+        setIsRecording(true);
+        console.log("Recording started");
+      }
+    } catch (error) {
+      console.error("Error toggling recording:", error);
+      alert("Error starting voice recording. Please try again.");
+      setIsRecording(false);
+      setIsListening(false);
+      setTranscript("");
+    }
+  };
+
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
@@ -103,7 +392,7 @@ const Home: React.FC = () => {
               Remo AI Assistant
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Powered by multi-agent orchestration
+              Powered by multi-agent orchestration & voice input
             </p>
           </div>
         </div>
@@ -119,7 +408,8 @@ const Home: React.FC = () => {
             <h2 className="text-xl font-semibold mb-2">Welcome to Remo!</h2>
             <p className="text-sm max-w-md mx-auto">
               I'm your personal AI assistant. I can help you with reminders,
-              tasks, and much more. Start a conversation below!
+              tasks, and much more. Start a conversation by typing or using
+              voice input!
             </p>
           </div>
         ) : (
@@ -206,6 +496,32 @@ const Home: React.FC = () => {
           </div>
         )}
 
+        {/* Voice recording indicator */}
+        {isListening && (
+          <div className="flex justify-end">
+            <div className="flex items-center space-x-2 bg-red-100 dark:bg-red-900 px-3 py-2 rounded-lg">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-red-700 dark:text-red-300">
+                Listening... {transcript && `"${transcript}"`}
+              </span>
+              <span className="text-xs text-red-600 dark:text-red-400">
+                (Click mic to stop)
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Voice input preview */}
+        {transcript && !isListening && (
+          <div className="flex justify-end">
+            <div className="flex items-center space-x-2 bg-blue-100 dark:bg-blue-900 px-3 py-2 rounded-lg">
+              <span className="text-sm text-blue-700 dark:text-blue-300">
+                Sending: "{transcript}"
+              </span>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
@@ -215,11 +531,11 @@ const Home: React.FC = () => {
           <div className="flex-1 rounded-2xl border border-gray-200 dark:border-gray-600 shadow-sm px-6 py-4 bg-gray-50 dark:bg-gray-700 min-h-[60px]">
             <textarea
               className="w-full resize-none border-none outline-none bg-transparent text-lg p-0 min-h-[32px] max-h-40 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              placeholder={placeholderText}
-              value={inputText}
+              placeholder={isListening ? "Listening..." : placeholderText}
+              value={isListening ? transcript : inputText}
               onChange={(e) => setInputText(e.target.value)}
               rows={1}
-              disabled={isLoading}
+              disabled={isLoading || isRecording}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -228,6 +544,27 @@ const Home: React.FC = () => {
               }}
             />
           </div>
+
+          {/* Voice Recording Button */}
+          <button
+            type="button"
+            onClick={toggleRecording}
+            disabled={isLoading}
+            className={`p-3 rounded-full transition flex items-center justify-center ${
+              isRecording
+                ? "bg-red-500 text-white hover:bg-red-600"
+                : "bg-gray-500 text-white hover:bg-gray-600"
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={isRecording ? "Stop recording" : "Start voice recording"}
+          >
+            {isRecording ? (
+              <FaMicrophoneSlash size={20} />
+            ) : (
+              <FaMicrophone size={20} />
+            )}
+          </button>
+
+          {/* Send Button */}
           <button
             type="submit"
             disabled={isLoading || !inputText.trim()}

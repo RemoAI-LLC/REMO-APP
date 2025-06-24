@@ -1,398 +1,385 @@
-# Remo API Usage Examples
+# Remo AI Assistant - API Usage Examples
 
-This guide provides practical examples of how to integrate with the Remo AI Assistant API from your frontend application.
+This guide provides comprehensive examples of how to integrate with the Remo AI Assistant API, including voice input functionality.
 
-## Quick Start
+## 🚀 Quick Start
 
-### Basic Chat Request
+### **Basic Chat Integration**
 
 ```javascript
 const API_BASE_URL = "https://remo-server.onrender.com";
 
-async function sendMessage(message, conversationHistory = []) {
-  const response = await fetch(`${API_BASE_URL}/chat`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      message,
-      conversation_history: conversationHistory,
-    }),
-  });
+// Send a message
+async function chatWithRemo(message) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message: message,
+        conversation_history: [],
+      }),
+    });
 
-  return response.json();
+    const data = await response.json();
+    return data.response;
+  } catch (error) {
+    console.error("Error:", error);
+    return "Sorry, I encountered an error.";
+  }
 }
 
 // Usage
-sendMessage("Hello Remo!")
-  .then((data) => console.log("Response:", data.response))
-  .catch((error) => console.error("Error:", error));
+const response = await chatWithRemo("Hello, can you help me set a reminder?");
+console.log("Remo:", response);
 ```
 
-## React Examples
+## 🎤 Voice Input Integration
 
-### Simple Chat Component
+### **Speech Recognition Setup**
 
-```jsx
-import React, { useState } from "react";
+```typescript
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onstart: ((this: SpeechRecognition, ev: Event) => any) | null;
+  onresult: ((this: SpeechRecognition, ev: any) => any) | null;
+  onerror: ((this: SpeechRecognition, ev: any) => any) | null;
+  onend: ((this: SpeechRecognition, ev: Event) => any) | null;
+}
 
-function ChatComponent() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
+class VoiceInput {
+  private recognition: SpeechRecognition | null = null;
+  private isListening = false;
 
-    setIsLoading(true);
+  constructor() {
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      this.recognition = new SpeechRecognition();
+      this.recognition.continuous = false;
+      this.recognition.interimResults = true;
+      this.recognition.lang = "en-US";
 
-    try {
-      const response = await fetch("https://remo-server.onrender.com/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: input,
-          conversation_history: messages,
-        }),
-      });
-
-      const data = await response.json();
-
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", content: input },
-        { role: "assistant", content: data.response },
-      ]);
-
-      setInput("");
-    } catch (error) {
-      console.error("Failed to send message:", error);
-    } finally {
-      setIsLoading(false);
+      this.setupEventHandlers();
     }
-  };
+  }
 
-  return (
-    <div className="chat-container">
-      <div className="messages">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.role}`}>
-            {msg.content}
-          </div>
-        ))}
-      </div>
+  private setupEventHandlers() {
+    if (!this.recognition) return;
 
-      <div className="input-area">
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-          placeholder="Type your message..."
-          disabled={isLoading}
-        />
-        <button onClick={sendMessage} disabled={isLoading}>
-          {isLoading ? "Sending..." : "Send"}
-        </button>
-      </div>
-    </div>
-  );
+    this.recognition.onstart = () => {
+      this.isListening = true;
+      console.log("Voice input started");
+    };
+
+    this.recognition.onresult = (event: any) => {
+      let finalTranscript = "";
+      let interimTranscript = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      // Emit transcript event
+      this.onTranscript(finalTranscript + interimTranscript);
+    };
+
+    this.recognition.onerror = (event: any) => {
+      console.error("Speech recognition error:", event.error);
+      this.isListening = false;
+    };
+
+    this.recognition.onend = () => {
+      this.isListening = false;
+      console.log("Voice input ended");
+    };
+  }
+
+  startListening(onTranscript: (text: string) => void) {
+    if (!this.recognition) {
+      console.error("Speech recognition not supported");
+      return false;
+    }
+
+    this.onTranscript = onTranscript;
+    this.recognition.start();
+    return true;
+  }
+
+  stopListening() {
+    if (this.recognition && this.isListening) {
+      this.recognition.stop();
+    }
+  }
+
+  isSupported(): boolean {
+    return this.recognition !== null;
+  }
+
+  private onTranscript: (text: string) => void = () => {};
+}
+
+// Usage
+const voiceInput = new VoiceInput();
+
+if (voiceInput.isSupported()) {
+  voiceInput.startListening((text) => {
+    console.log("Transcribed:", text);
+    // Send to Remo API
+    chatWithRemo(text);
+  });
 }
 ```
 
-### Custom Hook for Chat
+### **React Hook for Voice Input**
 
-```jsx
+```typescript
 import { useState, useCallback } from "react";
 
-export function useChat() {
-  const [messages, setMessages] = useState([]);
+interface UseRemoChatReturn {
+  messages: Message[];
+  isLoading: boolean;
+  isRecording: boolean;
+  transcript: string;
+  sendMessage: (message: string) => Promise<void>;
+  startVoiceInput: () => void;
+  stopVoiceInput: () => void;
+  clearHistory: () => void;
+}
+
+export const useRemoChat = (
+  apiUrl: string = "https://remo-server.onrender.com"
+): UseRemoChatReturn => {
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcript, setTranscript] = useState("");
 
   const sendMessage = useCallback(
-    async (message) => {
+    async (message: string) => {
       setIsLoading(true);
-      setError(null);
 
       try {
-        const response = await fetch("https://remo-server.onrender.com/chat", {
+        const response = await fetch(`${apiUrl}/chat`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            message,
-            conversation_history: messages,
+            message: message,
+            conversation_history: messages.map((msg) => ({
+              role: msg.role,
+              content: msg.content,
+            })),
           }),
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          throw new Error("Failed to get response from Remo");
         }
 
         const data = await response.json();
 
         setMessages((prev) => [
           ...prev,
-          { role: "user", content: message, timestamp: new Date() },
-          { role: "assistant", content: data.response, timestamp: new Date() },
+          {
+            role: "user",
+            content: message,
+            timestamp: new Date(),
+          },
+          {
+            role: "assistant",
+            content: data.response,
+            timestamp: new Date(),
+          },
         ]);
-      } catch (err) {
-        setError(err.message);
+      } catch (error) {
+        console.error("Error sending message:", error);
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: "user",
+            content: message,
+            timestamp: new Date(),
+          },
+          {
+            role: "assistant",
+            content: "Sorry, I encountered an error. Please try again.",
+            timestamp: new Date(),
+          },
+        ]);
       } finally {
         setIsLoading(false);
       }
     },
-    [messages]
+    [apiUrl, messages]
   );
 
-  const clearChat = useCallback(() => {
+  const startVoiceInput = useCallback(() => {
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = true;
+      recognition.lang = "en-US";
+
+      recognition.onstart = () => {
+        setIsRecording(true);
+        setTranscript("");
+      };
+
+      recognition.onresult = (event: any) => {
+        let finalTranscript = "";
+        let interimTranscript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        setTranscript(finalTranscript + interimTranscript);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error);
+        setIsRecording(false);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+        if (transcript.trim()) {
+          sendMessage(transcript);
+          setTranscript("");
+        }
+      };
+
+      recognition.start();
+    } else {
+      alert("Speech recognition not supported in your browser");
+    }
+  }, [transcript, sendMessage]);
+
+  const stopVoiceInput = useCallback(() => {
+    setIsRecording(false);
+  }, []);
+
+  const clearHistory = useCallback(() => {
     setMessages([]);
-    setError(null);
   }, []);
 
   return {
     messages,
     isLoading,
-    error,
+    isRecording,
+    transcript,
     sendMessage,
-    clearChat,
+    startVoiceInput,
+    stopVoiceInput,
+    clearHistory,
   };
-}
+};
 ```
 
-## TypeScript Examples
-
-### Type Definitions
+### **Complete Voice Input Component**
 
 ```typescript
-interface Message {
-  role: "user" | "assistant";
-  content: string;
-  timestamp?: Date;
+import React, { useState, useRef, useEffect } from "react";
+
+interface VoiceChatProps {
+  apiUrl?: string;
 }
 
-interface ChatRequest {
-  message: string;
-  conversation_history: Message[];
-}
-
-interface ChatResponse {
-  response: string;
-  success: boolean;
-  error: string | null;
-}
-
-interface ChatState {
-  messages: Message[];
-  isLoading: boolean;
-  error: string | null;
-}
-```
-
-### Typed Chat Service
-
-```typescript
-class RemoAPI {
-  private baseUrl: string;
-
-  constructor(baseUrl: string = "https://remo-server.onrender.com") {
-    this.baseUrl = baseUrl;
-  }
-
-  async chat(request: ChatRequest): Promise<ChatResponse> {
-    const response = await fetch(`${this.baseUrl}/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(request),
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-
-    return response.json();
-  }
-
-  async healthCheck(): Promise<{ status: string }> {
-    const response = await fetch(`${this.baseUrl}/health`);
-    return response.json();
-  }
-}
-
-// Usage
-const remoAPI = new RemoAPI();
-
-// Send a message
-const response = await remoAPI.chat({
-  message: "Set a reminder for tomorrow 9am",
-  conversation_history: [],
-});
-
-console.log("Remo says:", response.response);
-```
-
-## Common Use Cases
-
-### Setting Reminders
-
-```javascript
-// Set a reminder
-const reminderResponse = await sendMessage(
-  "Set a reminder for my dentist appointment tomorrow at 2pm"
-);
-
-// Follow up with time
-const followUpResponse = await sendMessage("Make it 3pm instead", [
-  {
-    role: "user",
-    content: "Set a reminder for my dentist appointment tomorrow at 2pm",
-  },
-  { role: "assistant", content: reminderResponse.response },
-]);
-```
-
-### Managing Todos
-
-```javascript
-// Add a todo
-await sendMessage('Add "buy groceries" to my todo list');
-
-// Add with priority
-await sendMessage('Add "finish project report" as high priority todo');
-
-// List todos
-await sendMessage("Show me all my todos");
-```
-
-### Multi-turn Conversations
-
-```javascript
-let conversationHistory = [];
-
-// First message
-const response1 = await sendMessage(
-  "Set a reminder for painting",
-  conversationHistory
-);
-conversationHistory.push(
-  { role: "user", content: "Set a reminder for painting" },
-  { role: "assistant", content: response1.response }
-);
-
-// Follow up with time
-const response2 = await sendMessage("tomorrow at 9am", conversationHistory);
-conversationHistory.push(
-  { role: "user", content: "tomorrow at 9am" },
-  { role: "assistant", content: response2.response }
-);
-
-// Add description
-const response3 = await sendMessage(
-  "yes, add description: paint the living room",
-  conversationHistory
-);
-```
-
-## Error Handling
-
-### Comprehensive Error Handling
-
-```javascript
-async function sendMessageWithErrorHandling(message, conversationHistory = []) {
-  try {
-    const response = await fetch("https://remo-server.onrender.com/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message,
-        conversation_history: conversationHistory,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `HTTP ${response.status}`);
-    }
-
-    return await response.json();
-  } catch (error) {
-    if (error.name === "TypeError" && error.message.includes("fetch")) {
-      throw new Error("Network error. Please check your connection.");
-    }
-
-    if (error.message.includes("429")) {
-      throw new Error("Too many requests. Please wait before trying again.");
-    }
-
-    throw error;
-  }
-}
-```
-
-### Retry Logic
-
-```javascript
-async function sendMessageWithRetry(
-  message,
-  conversationHistory = [],
-  maxRetries = 3
-) {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    try {
-      return await sendMessage(message, conversationHistory);
-    } catch (error) {
-      if (attempt === maxRetries) {
-        throw error;
-      }
-
-      // Wait before retrying (exponential backoff)
-      const delay = Math.pow(2, attempt) * 1000;
-      await new Promise((resolve) => setTimeout(resolve, delay));
-    }
-  }
-}
-```
-
-## Real-world Examples
-
-### React Chat App
-
-```jsx
-import React, { useState, useEffect, useRef } from "react";
-
-function RemoChatApp() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+export const VoiceChat: React.FC<VoiceChatProps> = ({
+  apiUrl = "https://remo-server.onrender.com",
+}) => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [transcript, setTranscript] = useState("");
+  const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
+      const SpeechRecognition =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = true;
+      recognitionRef.current.lang = "en-US";
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+      recognitionRef.current.onstart = () => {
+        setIsRecording(true);
+        setTranscript("");
+      };
 
-    const userMessage = input.trim();
-    setInput("");
+      recognitionRef.current.onresult = (event: any) => {
+        let finalTranscript = "";
+        let interimTranscript = "";
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        setTranscript(finalTranscript + interimTranscript);
+      };
+
+      recognitionRef.current.onerror = (event: any) => {
+        console.error("Speech recognition error:", event.error);
+        setIsRecording(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        setIsRecording(false);
+        if (transcript.trim()) {
+          sendMessage(transcript);
+          setTranscript("");
+        }
+      };
+    }
+  }, []);
+
+  const sendMessage = async (text: string) => {
     setIsLoading(true);
-
-    // Add user message immediately
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-
     try {
-      const response = await fetch("https://remo-server.onrender.com/chat", {
+      const response = await fetch(`${apiUrl}/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
-          message: userMessage,
-          conversation_history: messages,
+          message: text,
+          conversation_history: messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
         }),
       });
 
@@ -400,248 +387,543 @@ function RemoChatApp() {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", content: data.response },
+        { role: "user", content: text, timestamp: new Date() },
+        { role: "assistant", content: data.response, timestamp: new Date() },
       ]);
     } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "Sorry, I encountered an error. Please try again.",
-        },
-      ]);
+      console.error("Error:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      <div className="bg-white shadow-sm border-b p-4">
-        <h1 className="text-xl font-semibold text-gray-900">
-          Remo AI Assistant
-        </h1>
-      </div>
+  const toggleRecording = () => {
+    if (!recognitionRef.current) {
+      alert("Speech recognition not supported");
+      return;
+    }
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${
-              message.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
-            <div
-              className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                message.role === "user"
-                  ? "bg-blue-500 text-white"
-                  : "bg-white text-gray-900 border"
-              }`}
-            >
-              {message.content}
-            </div>
+    if (isRecording) {
+      recognitionRef.current.stop();
+    } else {
+      recognitionRef.current.start();
+    }
+  };
+
+  return (
+    <div className="voice-chat">
+      <div className="messages">
+        {messages.map((msg, index) => (
+          <div key={index} className={`message ${msg.role}`}>
+            <strong>{msg.role === "user" ? "You" : "Remo"}:</strong>{" "}
+            {msg.content}
           </div>
         ))}
-
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white text-gray-900 border px-4 py-2 rounded-lg">
-              Remo is typing...
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
+        {isLoading && <div className="loading">Remo is thinking...</div>}
       </div>
 
-      <div className="bg-white border-t p-4">
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Type your message..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            disabled={isLoading}
-          />
-          <button
-            onClick={sendMessage}
-            disabled={isLoading || !input.trim()}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Send
-          </button>
-        </div>
+      <div className="controls">
+        <button
+          onClick={toggleRecording}
+          className={`mic-button ${isRecording ? "recording" : ""}`}
+        >
+          {isRecording ? "🛑 Stop" : "🎤 Start"} Voice Input
+        </button>
+        {transcript && (
+          <div className="transcript">
+            <strong>You said:</strong> {transcript}
+          </div>
+        )}
       </div>
     </div>
   );
-}
-
-export default RemoChatApp;
+};
 ```
 
-### Vue.js Example
+## 🔧 Advanced Integration
 
-```vue
-<template>
-  <div class="chat-container">
-    <div class="messages" ref="messagesContainer">
-      <div
-        v-for="(message, index) in messages"
-        :key="index"
-        :class="['message', message.role]"
-      >
-        {{ message.content }}
-      </div>
-    </div>
+### **Error Handling & Retry Logic**
 
-    <div class="input-area">
-      <input
-        v-model="input"
-        @keyup.enter="sendMessage"
-        placeholder="Type your message..."
-        :disabled="isLoading"
-      />
-      <button @click="sendMessage" :disabled="isLoading">
-        {{ isLoading ? "Sending..." : "Send" }}
-      </button>
-    </div>
-  </div>
-</template>
+```typescript
+class RemoClient {
+  private apiUrl: string;
+  private maxRetries: number;
+  private retryDelay: number;
 
-<script>
-export default {
-  data() {
-    return {
-      messages: [],
-      input: "",
-      isLoading: false,
-    };
-  },
+  constructor(
+    apiUrl: string = "https://remo-server.onrender.com",
+    maxRetries: number = 3,
+    retryDelay: number = 1000
+  ) {
+    this.apiUrl = apiUrl;
+    this.maxRetries = maxRetries;
+    this.retryDelay = retryDelay;
+  }
 
-  methods: {
-    async sendMessage() {
-      if (!this.input.trim() || this.isLoading) return;
+  async sendMessage(message: string, conversationHistory: any[] = []) {
+    let lastError: Error;
 
-      this.isLoading = true;
-      const userMessage = this.input;
-      this.input = "";
-
-      this.messages.push({ role: "user", content: userMessage });
-
+    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
       try {
-        const response = await fetch("https://remo-server.onrender.com/chat", {
+        const response = await fetch(`${this.apiUrl}/chat`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({
-            message: userMessage,
-            conversation_history: this.messages.slice(0, -1),
+            message,
+            conversation_history: conversationHistory,
           }),
         });
 
-        const data = await response.json();
-        this.messages.push({ role: "assistant", content: data.response });
-      } catch (error) {
-        this.messages.push({
-          role: "assistant",
-          content: "Sorry, I encountered an error. Please try again.",
-        });
-      } finally {
-        this.isLoading = false;
-        this.$nextTick(() => {
-          this.scrollToBottom();
-        });
-      }
-    },
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
 
-    scrollToBottom() {
-      const container = this.$refs.messagesContainer;
-      container.scrollTop = container.scrollHeight;
-    },
-  },
-};
-</script>
+        const data = await response.json();
+        return data.response;
+      } catch (error) {
+        lastError = error as Error;
+        console.warn(`Attempt ${attempt} failed:`, error);
+
+        if (attempt < this.maxRetries) {
+          await new Promise((resolve) =>
+            setTimeout(resolve, this.retryDelay * attempt)
+          );
+        }
+      }
+    }
+
+    throw new RemoError(
+      `Failed after ${this.maxRetries} attempts: ${lastError!.message}`,
+      0,
+      "MAX_RETRIES_EXCEEDED"
+    );
+  }
+}
+
+class RemoError extends Error {
+  constructor(message: string, public code: number, public type: string) {
+    super(message);
+    this.name = "RemoError";
+  }
+}
 ```
 
-## Testing Your Integration
+### **Rate Limiting & Caching**
 
-### Health Check
+```typescript
+class RemoClientWithCache extends RemoClient {
+  private cache = new Map<string, { response: string; timestamp: number }>();
+  private cacheTimeout: number;
+  private minInterval: number;
+  private lastRequestTime: number = 0;
+
+  constructor(
+    apiUrl: string = "https://remo-server.onrender.com",
+    cacheTimeout: number = 5 * 60 * 1000, // 5 minutes
+    minInterval: number = 1000 // 1 second between requests
+  ) {
+    super(apiUrl);
+    this.cacheTimeout = cacheTimeout;
+    this.minInterval = minInterval;
+  }
+
+  async sendMessage(message: string, conversationHistory: any[] = []) {
+    // Rate limiting
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    if (timeSinceLastRequest < this.minInterval) {
+      const waitTime = this.minInterval - timeSinceLastRequest;
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
+    }
+
+    // Check cache for exact message match
+    const cacheKey = JSON.stringify({ message, conversationHistory });
+    const cached = this.cache.get(cacheKey);
+    if (cached && now - cached.timestamp < this.cacheTimeout) {
+      return cached.response;
+    }
+
+    // Make API call
+    const response = await super.sendMessage(message, conversationHistory);
+
+    // Cache the response
+    this.cache.set(cacheKey, {
+      response,
+      timestamp: now,
+    });
+
+    this.lastRequestTime = Date.now();
+    return response;
+  }
+
+  clearCache() {
+    this.cache.clear();
+  }
+}
+```
+
+## 🌐 Multi-Language Examples
+
+### **JavaScript (Node.js)**
 
 ```javascript
-// Test API connectivity
-async function testConnection() {
-  try {
-    const response = await fetch("https://remo-server.onrender.com/health");
-    const data = await response.json();
-    console.log("API Status:", data.status);
-    return data.status === "healthy";
-  } catch (error) {
-    console.error("API Connection Failed:", error);
-    return false;
+const axios = require("axios");
+
+class RemoNodeClient {
+  constructor(apiUrl = "https://remo-server.onrender.com") {
+    this.apiUrl = apiUrl;
+    this.conversationHistory = [];
+  }
+
+  async sendMessage(message) {
+    try {
+      const response = await axios.post(`${this.apiUrl}/chat`, {
+        message: message,
+        conversation_history: this.conversationHistory,
+      });
+
+      const data = response.data;
+      if (data.success) {
+        // Update conversation history
+        this.conversationHistory.push({ role: "user", content: message });
+        this.conversationHistory.push({
+          role: "assistant",
+          content: data.response,
+        });
+
+        return data.response;
+      } else {
+        throw new Error("API request failed");
+      }
+    } catch (error) {
+      console.error("Error:", error.message);
+      throw error;
+    }
+  }
+
+  getConversationHistory() {
+    return this.conversationHistory;
+  }
+
+  clearHistory() {
+    this.conversationHistory = [];
   }
 }
 
 // Usage
-testConnection().then((isHealthy) => {
-  if (isHealthy) {
-    console.log("✅ API is ready");
-  } else {
-    console.log("❌ API is not available");
-  }
-});
-```
+const remo = new RemoNodeClient();
 
-### Simple Test Script
-
-```javascript
-// test-api.js
-async function testRemoAPI() {
-  const testCases = [
-    "Hello, who are you?",
-    "Set a reminder for tomorrow 9am",
-    'Add "buy groceries" to my todo list',
-    "What can you help me with?",
-  ];
-
-  for (const testMessage of testCases) {
-    console.log(`\n🧪 Testing: "${testMessage}"`);
-
-    try {
-      const response = await fetch("https://remo-server.onrender.com/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: testMessage,
-          conversation_history: [],
-        }),
-      });
-
-      const data = await response.json();
-      console.log(`✅ Response: ${data.response.substring(0, 100)}...`);
-    } catch (error) {
-      console.log(`❌ Error: ${error.message}`);
-    }
-
-    // Wait between requests
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+async function main() {
+  try {
+    const response = await remo.sendMessage(
+      "Hello, can you help me set a reminder?"
+    );
+    console.log("Remo:", response);
+  } catch (error) {
+    console.error("Error:", error.message);
   }
 }
 
-testRemoAPI();
+main();
 ```
 
-## Best Practices
+### **Python**
 
-1. **Always handle errors gracefully**
-2. **Implement loading states**
-3. **Store conversation history for context**
-4. **Use TypeScript for type safety**
-5. **Implement retry logic for network issues**
-6. **Add rate limiting on the client side**
-7. **Validate input before sending**
-8. **Provide user feedback for all actions**
+```python
+import requests
+import json
+from typing import List, Dict, Any
+
+class RemoPythonClient:
+    def __init__(self, api_url: str = "https://remo-server.onrender.com"):
+        self.api_url = api_url
+        self.conversation_history: List[Dict[str, str]] = []
+
+    def send_message(self, message: str) -> str:
+        """Send a message to Remo AI Assistant"""
+        try:
+            response = requests.post(
+                f"{self.api_url}/chat",
+                headers={"Content-Type": "application/json"},
+                json={
+                    "message": message,
+                    "conversation_history": self.conversation_history
+                }
+            )
+
+            response.raise_for_status()
+            data = response.json()
+
+            if data["success"]:
+                # Update conversation history
+                self.conversation_history.append({"role": "user", "content": message})
+                self.conversation_history.append({"role": "assistant", "content": data["response"]})
+
+                return data["response"]
+            else:
+                raise Exception("API request failed")
+
+        except requests.exceptions.RequestException as e:
+            print(f"Network error: {e}")
+            raise
+        except Exception as e:
+            print(f"Error: {e}")
+            raise
+
+    def get_conversation_history(self) -> List[Dict[str, str]]:
+        """Get the current conversation history"""
+        return self.conversation_history.copy()
+
+    def clear_history(self) -> None:
+        """Clear the conversation history"""
+        self.conversation_history.clear()
+
+# Usage
+def main():
+    remo = RemoPythonClient()
+
+    try:
+        response = remo.send_message("Hello, can you help me set a reminder?")
+        print(f"Remo: {response}")
+
+        # Continue conversation
+        response = remo.send_message("Set it for tomorrow at 2pm")
+        print(f"Remo: {response}")
+
+    except Exception as e:
+        print(f"Error: {e}")
+
+if __name__ == "__main__":
+    main()
+```
+
+### **C#**
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+
+public class RemoCSharpClient
+{
+    private readonly HttpClient _httpClient;
+    private readonly string _apiUrl;
+    private readonly List<Message> _conversationHistory;
+
+    public RemoCSharpClient(string apiUrl = "https://remo-server.onrender.com")
+    {
+        _apiUrl = apiUrl;
+        _httpClient = new HttpClient();
+        _conversationHistory = new List<Message>();
+    }
+
+    public async Task<string> SendMessageAsync(string message)
+    {
+        try
+        {
+            var request = new ChatRequest
+            {
+                Message = message,
+                ConversationHistory = _conversationHistory
+            };
+
+            var json = JsonConvert.SerializeObject(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{_apiUrl}/chat", content);
+            response.EnsureSuccessStatusCode();
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            var chatResponse = JsonConvert.DeserializeObject<ChatResponse>(responseContent);
+
+            if (chatResponse.Success)
+            {
+                // Update conversation history
+                _conversationHistory.Add(new Message { Role = "user", Content = message });
+                _conversationHistory.Add(new Message { Role = "assistant", Content = chatResponse.Response });
+
+                return chatResponse.Response;
+            }
+            else
+            {
+                throw new Exception("API request failed");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+            throw;
+        }
+    }
+
+    public List<Message> GetConversationHistory()
+    {
+        return new List<Message>(_conversationHistory);
+    }
+
+    public void ClearHistory()
+    {
+        _conversationHistory.Clear();
+    }
+
+    public void Dispose()
+    {
+        _httpClient?.Dispose();
+    }
+}
+
+public class ChatRequest
+{
+    [JsonProperty("message")]
+    public string Message { get; set; }
+
+    [JsonProperty("conversation_history")]
+    public List<Message> ConversationHistory { get; set; }
+}
+
+public class ChatResponse
+{
+    [JsonProperty("response")]
+    public string Response { get; set; }
+
+    [JsonProperty("success")]
+    public bool Success { get; set; }
+
+    [JsonProperty("timestamp")]
+    public string Timestamp { get; set; }
+}
+
+public class Message
+{
+    [JsonProperty("role")]
+    public string Role { get; set; }
+
+    [JsonProperty("content")]
+    public string Content { get; set; }
+}
+
+// Usage
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        using var remo = new RemoCSharpClient();
+
+        try
+        {
+            var response = await remo.SendMessageAsync("Hello, can you help me set a reminder?");
+            Console.WriteLine($"Remo: {response}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+}
+```
+
+## 🎯 Best Practices
+
+### **1. Error Handling**
+
+- Always handle network errors gracefully
+- Implement retry logic for failed requests
+- Provide user-friendly error messages
+- Log errors for debugging
+
+### **2. Rate Limiting**
+
+- Respect API rate limits
+- Implement client-side throttling
+- Use exponential backoff for retries
+- Cache responses when appropriate
+
+### **3. Voice Input**
+
+- Check browser compatibility before enabling
+- Handle microphone permissions gracefully
+- Provide visual feedback during recording
+- Implement fallbacks for unsupported browsers
+
+### **4. Conversation Management**
+
+- Maintain conversation history for context
+- Clear history when appropriate
+- Handle long conversations efficiently
+- Implement conversation export/import
+
+### **5. Security**
+
+- Use HTTPS for all API calls
+- Validate user input
+- Sanitize conversation history
+- Implement proper authentication if needed
+
+## 🚀 Deployment Considerations
+
+### **Production Setup**
+
+```typescript
+// Environment-based configuration
+const config = {
+  apiUrl: process.env.REMO_API_URL || "https://remo-server.onrender.com",
+  maxRetries: parseInt(process.env.REMO_MAX_RETRIES || "3"),
+  retryDelay: parseInt(process.env.REMO_RETRY_DELAY || "1000"),
+  enableVoiceInput: process.env.REMO_ENABLE_VOICE === "true",
+  enableCaching: process.env.REMO_ENABLE_CACHE === "true",
+};
+
+// Initialize client with production settings
+const remoClient = new RemoClientWithCache(
+  config.apiUrl,
+  config.enableCaching ? 5 * 60 * 1000 : 0, // 5 minutes cache
+  config.maxRetries,
+  config.retryDelay
+);
+```
+
+### **Monitoring & Analytics**
+
+```typescript
+class RemoClientWithAnalytics extends RemoClient {
+  async sendMessage(message: string, conversationHistory: any[] = []) {
+    const startTime = Date.now();
+
+    try {
+      const response = await super.sendMessage(message, conversationHistory);
+
+      // Track successful requests
+      this.trackEvent("message_sent", {
+        duration: Date.now() - startTime,
+        messageLength: message.length,
+        hasHistory: conversationHistory.length > 0,
+      });
+
+      return response;
+    } catch (error) {
+      // Track failed requests
+      this.trackEvent("message_failed", {
+        duration: Date.now() - startTime,
+        error: error.message,
+        messageLength: message.length,
+      });
+
+      throw error;
+    }
+  }
+
+  private trackEvent(eventName: string, properties: any) {
+    // Send to your analytics service
+    console.log(`Analytics: ${eventName}`, properties);
+  }
+}
+```
 
 ---
 
-**Happy integrating with Remo! 🤖✨**
+**The Remo AI Assistant API is now ready for production use with voice input capabilities! 🎤✨**

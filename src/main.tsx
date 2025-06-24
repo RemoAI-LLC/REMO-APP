@@ -13,7 +13,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <PrivyProvider
       appId={privyAppId}
       config={{
-        loginMethods: ['google', 'email'],
+        loginMethods: ["google", "email"],
       }}
     >
       <App />

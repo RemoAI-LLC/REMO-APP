@@ -2,13 +2,14 @@ import React, { useState, useRef, useEffect } from "react";
 import { IoIosSend } from "react-icons/io";
 import { FaUser, FaRobot } from "react-icons/fa";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
+import { usePrivy } from "@privy-io/react-auth";
 
 const placeholderText = "Hi I'm Remo! Your Personal AI Assistant";
 
 // Backend API configuration
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://remo-server.onrender.com" ||
+  // "https://remo-server.onrender.com" ||
   "http://localhost:8000";
 
 // Type declarations for Web Speech API
@@ -38,6 +39,7 @@ interface Message {
 }
 
 const Home: React.FC = () => {
+  const { user } = usePrivy();
   const [inputText, setInputText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -48,6 +50,9 @@ const Home: React.FC = () => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentTranscriptRef = useRef<string>("");
+
+  // Get user ID from Privy
+  const userId = user?.id;
 
   // Initialize speech recognition
   useEffect(() => {
@@ -237,6 +242,7 @@ const Home: React.FC = () => {
             role: msg.role,
             content: msg.content,
           })),
+          user_id: userId, // Include user ID for user-specific functionality
         }),
       });
 
@@ -293,7 +299,11 @@ const Home: React.FC = () => {
         },
         body: JSON.stringify({
           message: voiceText,
-          conversation_history: [], // Start with empty history for now
+          conversation_history: messages.map((msg) => ({
+            role: msg.role,
+            content: msg.content,
+          })),
+          user_id: userId, // Include user ID for user-specific functionality
         }),
       });
 

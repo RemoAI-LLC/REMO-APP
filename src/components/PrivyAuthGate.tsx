@@ -9,10 +9,13 @@ const API_BASE_URL =
 const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { login, authenticated, ready } = usePrivy();
+  const { login, authenticated, ready, user } = usePrivy();
   const [loginError, setLoginError] = useState<string | null>(null);
   const loginAttempted = useRef(false);
   const warmupSent = useRef(false);
+
+  // Get user ID from Privy
+  const userId = user?.id;
 
   useEffect(() => {
     // Reset loginAttempted and warmupSent when user is logged out, so login and warmup are retried
@@ -45,10 +48,11 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
         body: JSON.stringify({
           message: "__warmup__",
           conversation_history: [],
+          user_id: userId, // Include user ID for user-specific functionality
         }),
       }).catch(() => {}); // Ignore errors, this is just a warmup
     }
-  }, [authenticated, ready]);
+  }, [authenticated, ready, userId]);
 
   if (!ready)
     return (

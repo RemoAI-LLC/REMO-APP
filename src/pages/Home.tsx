@@ -1,18 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoIosSend } from "react-icons/io";
-import { FaUser, FaRobot } from "react-icons/fa";
-import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
+import {
+  FaUser,
+  FaRobot,
+  FaMicrophone,
+  FaMicrophoneSlash,
+} from "react-icons/fa";
 import { usePrivy } from "@privy-io/react-auth";
+import logo from "../assets/Main Logo.jpg";
+import { Link } from "react-router-dom";
+import { RotateWords } from "../components/RotateWords";
 
 const placeholderText = "Hi I'm Remo! Your Personal AI Assistant";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// Backend API configuration
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  // "https://remo-server.onrender.com" ||
-  "http://localhost:8000";
-
-// Type declarations for Web Speech API
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
@@ -40,181 +41,74 @@ interface Message {
 
 const Home: React.FC = () => {
   const { user } = usePrivy();
+  const userId = user?.id;
+
   const [inputText, setInputText] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentTranscriptRef = useRef<string>("");
-
-  // Get user ID from Privy
-  const userId = user?.id;
 
   // Initialize speech recognition
   useEffect(() => {
-    // Check if we're in a secure context (HTTPS or localhost)
     const isSecureContext =
       window.isSecureContext ||
       window.location.protocol === "https:" ||
-      window.location.hostname === "localhost" ||
-      window.location.hostname === "127.0.0.1";
+      window.location.hostname === "localhost";
 
-    if (!isSecureContext) {
-      console.warn("Speech recognition requires HTTPS or localhost");
-      alert(
-        "Speech recognition requires a secure connection (HTTPS). Please use HTTPS or localhost."
-      );
-      return;
-    }
+    if (!isSecureContext) return;
 
-    if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
-      const SpeechRecognition =
-        window.SpeechRecognition || window.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) return;
 
-      // Basic configuration
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false; // Only get final results
-      recognitionRef.current.lang = "en-US";
+    const recognition = new SpeechRecognition();
+    recognitionRef.current = recognition;
 
-      recognitionRef.current.onstart = () => {
-        console.log("Speech recognition started");
-        setIsListening(true);
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => {
+      setIsListening(true);
+      setTranscript("");
+    };
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      currentTranscriptRef.current = transcript;
+      setTranscript(transcript);
+      setInputText(transcript);
+    };
+
+    recognition.onerror = () => {
+      setIsRecording(false);
+      setIsListening(false);
+      setTranscript("");
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+      setIsListening(false);
+
+      const finalTranscript = currentTranscriptRef.current.trim();
+      if (finalTranscript) {
+        sendVoiceMessage(finalTranscript);
+        currentTranscriptRef.current = "";
         setTranscript("");
-      };
-
-      recognitionRef.current.onresult = (event: any) => {
-        console.log("Speech recognition result received:", event);
-        const transcript = event.results[0][0].transcript;
-        console.log("Captured transcript:", transcript);
-
-        // Store in ref for immediate access
-        currentTranscriptRef.current = transcript;
-
-        // Update state for UI
-        setTranscript(transcript);
-
-        // Also set the input text so user can manually send if needed
-        setInputText(transcript);
-      };
-
-      recognitionRef.current.onerror = (event: any) => {
-        console.error("Speech recognition error:", event.error);
-        console.error("Error details:", event);
-        setIsRecording(false);
-        setIsListening(false);
-
-        // Handle specific errors with better messages
-        switch (event.error) {
-          case "not-allowed":
-            alert(
-              "Microphone permission denied. Please allow microphone access and try again."
-            );
-            break;
-          case "no-speech":
-            console.log(
-              "No speech detected - this is normal if you didn't speak"
-            );
-            // Don't show alert for no-speech, just log it
-            break;
-          case "network":
-            alert(
-              "Speech recognition service unavailable. This might be due to:\n• Browser compatibility issues\n• Microphone not working\n• Try refreshing the page"
-            );
-            break;
-          case "audio-capture":
-            alert(
-              "Microphone not found or not working. Please check your microphone and try again."
-            );
-            break;
-          case "service-not-allowed":
-            alert(
-              "Speech recognition service not allowed. Please check your browser settings."
-            );
-            break;
-          case "bad-grammar":
-            alert("Speech recognition grammar error. Please try again.");
-            break;
-          case "language-not-supported":
-            alert("Language not supported. Please try with English.");
-            break;
-          default:
-            console.warn("Unknown speech recognition error:", event.error);
-          // Don't show alert for unknown errors, just log them
-        }
-
-        // Clear transcript on error
-        setTranscript("");
-      };
-
-      recognitionRef.current.onend = () => {
-        console.log("=== SPEECH RECOGNITION ENDED ===");
-        console.log("Current transcript state:", transcript);
-        console.log("Current transcript ref:", currentTranscriptRef.current);
-
-        setIsListening(false);
-        setIsRecording(false);
-
-        // Use the ref value which is immediately available
-        const finalTranscript = currentTranscriptRef.current.trim();
-        console.log("Final transcript (from ref):", finalTranscript);
-        console.log("Final transcript length:", finalTranscript.length);
-
-        if (finalTranscript) {
-          console.log(
-            "✅ Transcript found, sending message immediately:",
-            finalTranscript
-          );
-
-          // Clear any existing timeout
-          if (voiceTimeoutRef.current) {
-            clearTimeout(voiceTimeoutRef.current);
-            voiceTimeoutRef.current = null;
-          }
-
-          // Send the message immediately
-          sendVoiceMessage(finalTranscript);
-
-          // Clear the ref, transcript, and input text immediately
-          currentTranscriptRef.current = "";
-          setTranscript("");
-          setInputText("");
-        } else {
-          console.log("❌ No transcript found, not sending message");
-        }
-
-        // Clear transcript after a short delay
-        setTimeout(() => {
-          console.log("Clearing transcript state");
-          setTranscript("");
-        }, 100);
-      };
-    } else {
-      console.warn("Speech recognition not supported in this browser");
-    }
-  }, []); // Remove transcript dependency
-
-  // Auto-scroll to bottom when new messages arrive
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (voiceTimeoutRef.current) {
-        clearTimeout(voiceTimeoutRef.current);
+        setInputText("");
       }
     };
   }, []);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -233,357 +127,230 @@ const Home: React.FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: inputText,
           conversation_history: messages.map((msg) => ({
             role: msg.role,
             content: msg.content,
           })),
-          user_id: userId, // Include user ID for user-specific functionality
+          user_id: userId,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to get response from Remo");
-      }
-
       const data = await response.json();
-
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: data.response,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Error sending message:", error);
-      const errorMessage: Message = {
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.response,
+          timestamp: new Date(),
+        },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Sorry, I encountered an error. Please try again.",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const sendVoiceMessage = async (voiceText: string) => {
-    console.log("sendVoiceMessage called with:", voiceText);
-    if (!voiceText.trim()) {
-      console.log("sendVoiceMessage early return - empty voiceText");
-      return;
-    }
-
-    console.log("Creating user message for voice input");
     const userMessage: Message = {
       role: "user",
       content: voiceText,
       timestamp: new Date(),
     };
 
-    // Add user message to chat immediately
-    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
     try {
-      console.log("Sending voice message to API:", voiceText);
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: voiceText,
           conversation_history: messages.map((msg) => ({
             role: msg.role,
             content: msg.content,
           })),
-          user_id: userId, // Include user ID for user-specific functionality
+          user_id: userId,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to get response from Remo");
-      }
-
       const data = await response.json();
-      console.log("Received response from Remo:", data.response);
-
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: data.response,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Error sending voice message:", error);
-      const errorMessage: Message = {
-        role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: data.response,
+          timestamp: new Date(),
+        },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: "Sorry, I encountered an error. Please try again.",
+          timestamp: new Date(),
+        },
+      ]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const toggleRecording = () => {
-    if (!recognitionRef.current) {
-      alert(
-        "Speech recognition is not supported in your browser. Please use Chrome or Edge."
-      );
-      return;
+    const recognition = recognitionRef.current;
+    if (!recognition) return;
+
+    if (isRecording) {
+      recognition.stop();
+    } else {
+      setInputText("");
+      currentTranscriptRef.current = "";
+      recognition.start();
     }
 
-    try {
-      if (isRecording) {
-        // Stop recording
-        console.log("Stopping recording manually...");
-
-        // Clear any existing timeout
-        if (voiceTimeoutRef.current) {
-          clearTimeout(voiceTimeoutRef.current);
-          voiceTimeoutRef.current = null;
-        }
-
-        recognitionRef.current.stop();
-        setIsRecording(false);
-        setIsListening(false);
-        console.log("Recording stopped manually");
-      } else {
-        // Start recording
-        console.log("Starting recording...");
-        console.log("Browser info:", navigator.userAgent);
-        console.log("HTTPS:", window.location.protocol === "https:");
-        console.log(
-          "Microphone permission:",
-          navigator.permissions ? "Available" : "Not available"
-        );
-
-        // Clear any previous transcript
-        setTranscript("");
-        setInputText("");
-        currentTranscriptRef.current = "";
-
-        recognitionRef.current.start();
-        setIsRecording(true);
-        console.log("Recording started");
-      }
-    } catch (error) {
-      console.error("Error toggling recording:", error);
-      alert("Error starting voice recording. Please try again.");
-      setIsRecording(false);
-      setIsListening(false);
-      setTranscript("");
-    }
+    setIsRecording(!isRecording);
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
+  const formatTime = (date: Date) =>
+    date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-  return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
-            <FaRobot className="text-white text-lg" />
-          </div>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              Remo AI Assistant
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Powered by multi-agent orchestration & voice input
-            </p>
-          </div>
-        </div>
-      </div>
+  const InputBox = (
+    <form
+      onSubmit={handleSendMessage}
+      className="w-full max-w-4xl mx-auto px-4 py-8"
+    >
+      <div className="relative bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl shadow-sm px-4 pt-2 pb-12">
+        {/* Textarea */}
+        <textarea
+          className="w-full resize-none bg-transparent text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none max-h-[14rem] min-h-[2.5rem] overflow-y-auto"
+          placeholder={isListening ? "Listening..." : placeholderText}
+          value={isListening ? transcript : inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          rows={2}
+          disabled={isLoading || isRecording}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage(e);
+            }
+          }}
+        />
 
-      {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 ? (
-          <div className="text-center text-gray-500 dark:text-gray-400 mt-20">
-            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FaRobot className="text-blue-500 text-2xl" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">Welcome to Remo!</h2>
-            <p className="text-sm max-w-md mx-auto">
-              I'm your personal AI assistant. I can help you with reminders,
-              tasks, and much more. Start a conversation by typing or using
-              voice input!
-            </p>
-          </div>
-        ) : (
-          messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
-              <div
-                className={`flex items-start space-x-3 max-w-xs lg:max-w-md ${
-                  message.role === "user"
-                    ? "flex-row-reverse space-x-reverse"
-                    : ""
-                }`}
-              >
-                {/* Avatar */}
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    message.role === "user"
-                      ? "bg-blue-500"
-                      : "bg-gray-200 dark:bg-gray-700"
-                  }`}
-                >
-                  {message.role === "user" ? (
-                    <FaUser className="text-white text-sm" />
-                  ) : (
-                    <FaRobot className="text-gray-600 dark:text-gray-300 text-sm" />
-                  )}
-                </div>
-
-                {/* Message Bubble */}
-                <div
-                  className={`px-4 py-2 rounded-lg ${
-                    message.role === "user"
-                      ? "bg-blue-500 text-white"
-                      : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"
-                  }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap">
-                    {message.content}
-                  </p>
-                  <p
-                    className={`text-xs mt-1 ${
-                      message.role === "user"
-                        ? "text-blue-100"
-                        : "text-gray-500 dark:text-gray-400"
-                    }`}
-                  >
-                    {formatTime(message.timestamp)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))
-        )}
-
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="flex items-start space-x-3">
-              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
-                <FaRobot className="text-gray-600 dark:text-gray-300 text-sm" />
-              </div>
-              <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <div className="flex space-x-1">
-                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.1s" }}
-                    ></div>
-                    <div
-                      className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    ></div>
-                  </div>
-                  <span className="text-sm text-gray-500 dark:text-gray-400">
-                    Remo is thinking...
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Voice recording indicator */}
-        {isListening && (
-          <div className="flex justify-end">
-            <div className="flex items-center space-x-2 bg-red-100 dark:bg-red-900 px-3 py-2 rounded-lg">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-red-700 dark:text-red-300">
-                Listening... {transcript && `"${transcript}"`}
-              </span>
-              <span className="text-xs text-red-600 dark:text-red-400">
-                (Click mic to stop)
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Voice input preview */}
-        {transcript && !isListening && (
-          <div className="flex justify-end">
-            <div className="flex items-center space-x-2 bg-blue-100 dark:bg-blue-900 px-3 py-2 rounded-lg">
-              <span className="text-sm text-blue-700 dark:text-blue-300">
-                Sending: "{transcript}"
-              </span>
-            </div>
-          </div>
-        )}
-
-        <div ref={messagesEndRef} />
-      </div>
-
-      {/* Input Area */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <form onSubmit={handleSendMessage} className="flex items-end gap-4">
-          <div className="flex-1 rounded-2xl border border-gray-200 dark:border-gray-600 shadow-sm px-6 py-4 bg-gray-50 dark:bg-gray-700 min-h-[60px]">
-            <textarea
-              className="w-full resize-none border-none outline-none bg-transparent text-lg p-0 min-h-[32px] max-h-40 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              placeholder={isListening ? "Listening..." : placeholderText}
-              value={isListening ? transcript : inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              rows={1}
-              disabled={isLoading || isRecording}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage(e);
-                }
-              }}
-            />
-          </div>
-
-          {/* Voice Recording Button */}
+        {/* Icons in bottom-right corner */}
+        <div className="absolute bottom-2 right-3 flex items-center gap-2">
+          {/* Mic button */}
           <button
             type="button"
             onClick={toggleRecording}
             disabled={isLoading}
-            className={`p-3 rounded-full transition flex items-center justify-center ${
+            className={`p-2 rounded-full transition ${
               isRecording
-                ? "bg-red-500 text-white hover:bg-red-600"
-                : "bg-gray-500 text-white hover:bg-gray-600"
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
+            } text-white`}
             title={isRecording ? "Stop recording" : "Start voice recording"}
           >
             {isRecording ? (
-              <FaMicrophoneSlash size={20} />
+              <FaMicrophoneSlash size={16} />
             ) : (
-              <FaMicrophone size={20} />
+              <FaMicrophone size={16} />
             )}
           </button>
 
-          {/* Send Button */}
+          {/* Send button */}
           <button
             type="submit"
             disabled={isLoading || !inputText.trim()}
-            className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <IoIosSend size={20} />
+            <IoIosSend size={16} />
           </button>
-        </form>
+        </div>
       </div>
+    </form>
+  );
+
+  return (
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400">
+            <Link to="/" className="mb-4">
+              <img src={logo} alt="Logo" className="h-10 w-auto rounded-full" />
+            </Link>
+            <h2 className="text-2xl font-semibold mb-2">Welcome to Remo!</h2>
+            <p className="text-lg mb-2">I'm your personal AI assistant.</p>
+            <RotateWords
+              text="I can help you with:"
+              words={["reminders", "tasks", "shopping", "notes", "ideas"]}
+            />
+
+            {InputBox}
+          </div>
+        ) : (
+          <>
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
+                }`}
+              >
+                <div
+                  className={`flex items-start space-x-3 max-w-xs lg:max-w-md ${
+                    message.role === "user"
+                      ? "flex-row-reverse space-x-reverse"
+                      : ""
+                  }`}
+                >
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      message.role === "user"
+                        ? "bg-blue-500"
+                        : "bg-gray-200 dark:bg-gray-700"
+                    }`}
+                  >
+                    {message.role === "user" ? (
+                      <FaUser className="text-white text-sm" />
+                    ) : (
+                      <FaRobot className="text-gray-600 dark:text-gray-300 text-sm" />
+                    )}
+                  </div>
+                  <div
+                    className={`px-4 py-2 rounded-lg ${
+                      message.role === "user"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">
+                      {message.content}
+                    </p>
+                    <p className="text-xs mt-1">
+                      {formatTime(message.timestamp)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
+            <div ref={messagesEndRef} />
+          </>
+        )}
+      </div>
+
+      {messages.length > 0 && <div className="py-4">{InputBox}</div>}
     </div>
   );
 };

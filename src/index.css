@@ -31,3 +31,27 @@ a,
 .clickable {
     cursor: pointer;
 }
+
+@keyframes scrollText {
+    0% {
+        transform: translateY(0%);
+    }
+
+    33% {
+        transform: translateY(-100%);
+    }
+
+    66% {
+        transform: translateY(-200%);
+    }
+
+    100% {
+        transform: translateY(0%);
+    }
+}
+
+.animate-scrollText {
+    animation: scrollText 6s infinite steps(1);
+    line-height: 1.25rem;
+    /* Matches h-5 (20px) */
+}

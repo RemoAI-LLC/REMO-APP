@@ -58,9 +58,6 @@ const Topbar: React.FC = () => {
               ) : (
                 <FaUserCircle className="w-6 h-6" />
               )}
-              <span className="text-sm font-medium">
-                {getUserDisplayName()}
-              </span>
               {isUserDropdownOpen ? (
                 <IoChevronUpSharp className="w-4 h-4" />
               ) : (

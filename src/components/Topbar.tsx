@@ -67,6 +67,9 @@ const Topbar: React.FC = () => {
 
             {isUserDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 py-1 bg-[#fafafa] rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+                <span className="text-sm font-medium text-gray-400 px-4 py-2 block">
+                  {getUserDisplayName()}
+                </span>
                 <button
                   onClick={() => {
                     logout();

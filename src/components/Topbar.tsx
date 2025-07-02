@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FaUserCircle } from "react-icons/fa";
 import { IoChevronDownSharp, IoChevronUpSharp } from "react-icons/io5";
-import { useLogin, useLogout, usePrivy } from "@privy-io/react-auth"; // <-- update import
+import { useLogin, useLogout, usePrivy } from "@privy-io/react-auth";
 
 const Topbar: React.FC = () => {
   const { authenticated, ready, user } = usePrivy();
-  const { login } = useLogin(); // <-- get login from Privy hook
-  const { logout } = useLogout(); // <-- get logout from Privy hook
+  const { login } = useLogin();
+  const { logout } = useLogout();
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +35,12 @@ const Topbar: React.FC = () => {
   };
 
   const getUserImage = () => {
-    return "";
+    return ""; // No image logic for now
+  };
+
+  const getUserInitial = () => {
+    const name = getUserDisplayName();
+    return name ? name.charAt(0).toUpperCase() : "?";
   };
 
   return (
@@ -51,12 +55,14 @@ const Topbar: React.FC = () => {
             >
               {getUserImage() ? (
                 <img
-                  src={getUserImage()!}
+                  src={getUserImage()}
                   alt="Profile"
                   className="w-8 h-8 rounded-full object-cover border border-white"
                 />
               ) : (
-                <FaUserCircle className="w-6 h-6" />
+                <div className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-600 text-white font-semibold text-sm uppercase">
+                  {getUserInitial()}
+                </div>
               )}
               {isUserDropdownOpen ? (
                 <IoChevronUpSharp className="w-4 h-4" />
@@ -67,7 +73,7 @@ const Topbar: React.FC = () => {
 
             {isUserDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 py-1 bg-[#fafafa] rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                <span className="text-sm font-medium text-gray-400 px-4 py-2 block">
+                <span className="text-sm font-medium text-gray-500 px-4 py-2 block">
                   {getUserDisplayName()}
                 </span>
                 <button

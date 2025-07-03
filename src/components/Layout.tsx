@@ -10,7 +10,7 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       <Sidebar onExpandChange={setSidebarExpanded} />
 
       <div
-        className={`transition-all duration-300 ml-16 ${
+        className={`transition-all duration-300 ml-16  ${
           sidebarExpanded ? "lg:ml-64" : "lg:ml-16"
         }`}
       >

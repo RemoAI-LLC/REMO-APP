@@ -1,12 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoIosSend } from "react-icons/io";
-import {
-  FaUser,
-  FaRobot,
-  FaMicrophone,
-  FaMicrophoneSlash,
-} from "react-icons/fa";
+import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { usePrivy } from "@privy-io/react-auth";
+import { getUserImage, getUserInitial } from "../utils/userProfileUtils";
 import logo from "../assets/MainLogo.png";
 import { Link } from "react-router-dom";
 import { RotateWords } from "../components/RotateWords";
@@ -54,7 +50,6 @@ const Home: React.FC = () => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const currentTranscriptRef = useRef<string>("");
 
-  // Initialize speech recognition
   useEffect(() => {
     const isSecureContext =
       window.isSecureContext ||
@@ -232,7 +227,6 @@ const Home: React.FC = () => {
       className="w-full max-w-4xl mx-auto px-4 py-8"
     >
       <div className="relative bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl shadow-sm px-4 pt-2 pb-12">
-        {/* Textarea */}
         <textarea
           className="w-full resize-none bg-transparent text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none max-h-[14rem] min-h-[2.5rem] overflow-y-auto"
           placeholder={isListening ? "Listening..." : placeholderText}
@@ -248,9 +242,7 @@ const Home: React.FC = () => {
           }}
         />
 
-        {/* Icons in bottom-right corner */}
         <div className="absolute bottom-2 right-3 flex items-center gap-2">
-          {/* Mic button */}
           <button
             type="button"
             onClick={toggleRecording}
@@ -269,7 +261,6 @@ const Home: React.FC = () => {
             )}
           </button>
 
-          {/* Send button */}
           <button
             type="submit"
             disabled={isLoading || !inputText.trim()}
@@ -296,7 +287,6 @@ const Home: React.FC = () => {
               text="I can help you with:"
               words={["reminders", "tasks", "shopping", "notes", "ideas"]}
             />
-
             {InputBox}
           </div>
         ) : (
@@ -315,19 +305,28 @@ const Home: React.FC = () => {
                       : ""
                   }`}
                 >
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                      message.role === "user"
-                        ? "bg-blue-500"
-                        : "bg-gray-200 dark:bg-gray-700"
-                    }`}
-                  >
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                     {message.role === "user" ? (
-                      <FaUser className="text-white text-sm" />
+                      getUserImage(user) ? (
+                        <img
+                          src={getUserImage(user)!}
+                          alt="User"
+                          className="w-full h-full object-cover "
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white font-semibold text-sm uppercase">
+                          {getUserInitial(user)}
+                        </div>
+                      )
                     ) : (
-                      <FaRobot className="text-gray-600 dark:text-gray-300 text-sm" />
+                      <img
+                        src={logo}
+                        alt="Remo AI"
+                        className="w-full h-full object-cover "
+                      />
                     )}
                   </div>
+
                   <div
                     className={`px-4 py-2 rounded-lg ${
                       message.role === "user"

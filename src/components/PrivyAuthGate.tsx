@@ -7,17 +7,25 @@ const API_BASE_URL =
   "https://remo-server.onrender.com" ||
   "http://localhost:8000";
 
+const STRIPE_BACKEND_URL =
+  import.meta.env.VITE_STRIPE_BACKEND_URL ||
+  (window.location.hostname === "localhost"
+    ? "http://localhost:3001"
+    : "https://stripe-backend-4ian.onrender.com"); // Use Render in production
+
 const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { login, authenticated, ready, user } = usePrivy();
   const [loginError, setLoginError] = useState<string | null>(null);
+  const [checkingAccess, setCheckingAccess] = useState(false);
   const loginAttempted = useRef(false);
   const warmupSent = useRef(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const userId = user?.id;
+  const userEmail = user?.email?.address;
 
   useEffect(() => {
     if (ready && !authenticated) {
@@ -29,20 +37,46 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (ready && !authenticated && !loginAttempted.current) {
       loginAttempted.current = true;
-      login().catch((err: unknown) => {
-        if (err instanceof Error) {
-          setLoginError(err.message);
-        } else {
-          setLoginError("Login failed");
+      (async () => {
+        try {
+          await login();
+        } catch (err) {
+          if (err instanceof Error) {
+            setLoginError(err.message);
+          } else {
+            setLoginError("Login failed");
+          }
         }
-      });
+      })();
     }
   }, [ready, authenticated, login]);
 
   useEffect(() => {
-    if (authenticated && ready && !warmupSent.current) {
+    // Only check access after login, and only once
+    if (authenticated && ready && !warmupSent.current && userEmail) {
       warmupSent.current = true;
-
+      setCheckingAccess(true);
+      console.log("Checking access for", userEmail); // DEBUG
+      fetch(`${STRIPE_BACKEND_URL}/api/user-status`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setCheckingAccess(false);
+          if (data.hasAccess) {
+            navigate("/home", { replace: true });
+          } else {
+            navigate("/pricing", { replace: true });
+          }
+        })
+        .catch(() => {
+          setCheckingAccess(false);
+          // fallback: show pricing
+          navigate("/pricing", { replace: true });
+        });
+      // Optionally: warm up chat endpoint
       fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -52,15 +86,10 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
           user_id: userId,
         }),
       }).catch(() => {});
-
-      // ✅ Redirect to /pricing only if not already there
-      if (location.pathname === "/" || location.pathname === "/login") {
-        navigate("/pricing", { replace: true });
-      }
     }
-  }, [authenticated, ready, userId, navigate, location.pathname]);
+  }, [authenticated, ready, userId, userEmail, navigate, location.pathname]);
 
-  if (!ready)
+  if (!ready || checkingAccess)
     return (
       <div className="h-screen flex items-center justify-center">
         Loading...

@@ -31,11 +31,16 @@ const Topbar: React.FC = () => {
     if (user.twitter?.name) return user.twitter.name;
     if (user.github?.name) return user.github.name;
     if (user.email?.address) return user.email.address.split("@")[0];
+    if (user.linkedin?.name) return user.linkedin.name;
     return "User";
   };
 
   const getUserImage = () => {
-    return ""; // No image logic for now
+    if (!user) return "";
+
+    if (user.twitter?.profilePictureUrl) return user.twitter.profilePictureUrl;
+    if (user.linkedin?.vanityName) return user.linkedin.vanityName;
+    return "User";
   };
 
   const getUserInitial = () => {

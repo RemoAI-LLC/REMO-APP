@@ -127,8 +127,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
             Settings
           </span>
         </Link>
-        <Link
-          to="/docs"
+        <a
+          href="https://docs.hireremo.com"
+          target="_blank"
+          rel="noopener noreferrer"
           className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
@@ -141,7 +143,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
           >
             Docs
           </span>
-        </Link>
+        </a>
+
         <Link
           to="/contact"
           className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"

@@ -9,6 +9,7 @@ import {
   getEmailSuggestions,
 } from "../utils/emailIntentDetection";
 import ScheduleMeetingModal from "../components/ScheduleMeetingModal";
+import { getUserImage, getUserInitial } from "../utils/userProfileUtils";
 import logo from "../assets/MainLogo.png";
 import { Link } from "react-router-dom";
 import { RotateWords } from "../components/RotateWords";
@@ -616,9 +617,9 @@ const Home: React.FC = () => {
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400">
             <Link to="/" className="mb-4">
-              <img src={logo} alt="Logo" className="h-10 w-auto rounded-full" />
+              <img src={logo} alt="Logo" className="h-30 w-auto rounded-full" />
             </Link>
-            <h2 className="text-2xl font-semibold mb-2">Welcome to Remo!</h2>
+            <h2 className="text-2xl font-semibold mb-2">Welcome to Remo AI!</h2>
             <p className="text-lg mb-2">I'm your personal AI assistant.</p>
             <RotateWords
               text="I can help you with:"

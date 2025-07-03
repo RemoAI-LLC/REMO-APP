@@ -40,13 +40,7 @@ const Topbar: React.FC = () => {
   const getUserImage = (): string | null => {
     if (!user) return null;
 
-    const imageSources = [
-      user.google?.picture,
-      user.twitter?.profilePictureUrl,
-      user.linkedin?.profilePictureUrl,
-      user.github?.profilePictureUrl,
-      user.discord?.profilePictureUrl,
-    ];
+    const imageSources = [user.twitter?.profilePictureUrl];
 
     for (const src of imageSources) {
       if (typeof src === "string" && src.trim() !== "") {

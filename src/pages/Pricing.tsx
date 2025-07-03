@@ -40,7 +40,7 @@ const plans: Plan[] = [
           "Remainders",
         ],
         button: "Start Monthly Basic",
-        link: "https://buy.stripe.com/cNi9AT4Gt2Is53McBRafS00",
+        link: "https://buy.stripe.com/4gM4gz8WJ4QAdAi9pFafS04",
       },
       annual: {
         price: "$215.89",

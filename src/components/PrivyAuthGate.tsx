@@ -20,6 +20,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   const [loginError, setLoginError] = useState<string | null>(null);
   const [checkingAccess, setCheckingAccess] = useState(false);
   const loginAttempted = useRef(false);
+  const warmupSent = useRef(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,6 +30,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (ready && !authenticated) {
       loginAttempted.current = false;
+      warmupSent.current = false;
     }
   }, [ready, authenticated]);
 
@@ -49,8 +51,15 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
     }
   }, [ready, authenticated, login]);
 
+  // Reset warmupSent whenever userEmail changes (i.e., on user switch)
   useEffect(() => {
-    if (authenticated && ready && userEmail) {
+    warmupSent.current = false;
+  }, [userEmail]);
+
+  useEffect(() => {
+    // Only check access after login, and only once per user
+    if (authenticated && ready && !warmupSent.current && userEmail) {
+      warmupSent.current = true;
       setCheckingAccess(true);
       console.log("Checking access for", userEmail); // DEBUG
       fetch(`${STRIPE_BACKEND_URL}/api/user-status`, {

@@ -34,11 +34,13 @@ const EmailStatusIndicator: React.FC<EmailStatusIndicatorProps> = ({
   const checkAuthStatus = async () => {
     setIsLoading(true);
     try {
+      console.log('[DEBUG] EmailStatusIndicator checking auth status for userId:', userId);
       const response = await fetch(`${API_BASE_URL}/auth/status/${userId}`);
       const data = await response.json();
+      console.log('[DEBUG] /auth/status response:', data);
       setAuthStatus(data);
     } catch (err) {
-      console.error('Failed to check email auth status:', err);
+      console.error('[DEBUG] Failed to check email auth status:', err);
       setAuthStatus({
         authenticated: false,
         scopes: [],

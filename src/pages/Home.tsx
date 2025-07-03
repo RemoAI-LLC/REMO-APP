@@ -6,13 +6,14 @@ import { usePrivy } from "@privy-io/react-auth";
 import EmailSetupModal from "../components/EmailSetupModal";
 import { detectEmailIntent, getEmailSuggestions } from "../utils/emailIntentDetection";
 import ScheduleMeetingModal from "../components/ScheduleMeetingModal";
+import ScheduleMeetingForm from "../components/ScheduleMeetingForm";
 
 const placeholderText = "Hi I'm Remo! Your Personal AI Assistant";
 
 // Backend API configuration
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  // "https://remo-server.onrender.com" ||
+  //"https://remo-server.onrender.com" ||
   "http://localhost:8000";
 
 // Type declarations for Web Speech API
@@ -58,6 +59,16 @@ function isMeetingDetailsPrompt(message: string) {
   );
 }
 
+// Add a helper to detect meeting scheduling intent
+function isScheduleMeetingIntent(text: string) {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("schedule a meet") ||
+    lower.includes("schedule a meeting") ||
+    lower.includes("set up a meeting")
+  );
+}
+
 const Home: React.FC = () => {
   const { user } = usePrivy();
   const [inputText, setInputText] = useState("");
@@ -68,34 +79,28 @@ const Home: React.FC = () => {
   const [transcript, setTranscript] = useState("");
   const [showEmailSetup, setShowEmailSetup] = useState(false);
   const [emailConnected, setEmailConnected] = useState(false);
-  const [showScheduleMeeting, setShowScheduleMeeting] = useState(false);
   const [showMeetingForm, setShowMeetingForm] = useState(false);
+  const [pendingMeetingForm, setPendingMeetingForm] = useState(false);
+  const [googleEmail, setGoogleEmail] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentTranscriptRef = useRef<string>("");
-  const [meetingForm, setMeetingForm] = useState({
-    attendees: "",
-    subject: "",
-    date: "",
-    time: "",
-    duration: "60",
-    location: "",
-    description: ""
-  });
 
   // Get user ID from Privy
   const userId = user?.id;
 
-  // Function to check email auth status
+  // Function to check email auth status and fetch google email
   const checkEmailAuthStatus = async () => {
     if (!userId) return;
     try {
       const response = await fetch(`${API_BASE_URL}/auth/status/${userId}`);
       const data = await response.json();
       setEmailConnected(!!data.authenticated);
+      setGoogleEmail(data.google_email || null);
     } catch (err) {
       setEmailConnected(false);
+      setGoogleEmail(null);
     }
   };
 
@@ -283,6 +288,21 @@ const Home: React.FC = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim() || isLoading) return;
+
+    // If user intent is to schedule a meeting, show the form immediately
+    if (isScheduleMeetingIntent(inputText)) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "user",
+          content: inputText,
+          timestamp: new Date(),
+        },
+      ]);
+      setPendingMeetingForm(true);
+      setInputText("");
+      return;
+    }
 
     // Check for email intent
     const emailIntent = detectEmailIntent(inputText);
@@ -504,89 +524,6 @@ const Home: React.FC = () => {
     checkEmailAuthStatus(); // Re-check status after modal closes
   };
 
-  const handleMeetingFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setMeetingForm({ ...meetingForm, [e.target.name]: e.target.value });
-  };
-
-  const handleMeetingFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowMeetingForm(false);
-    
-    // Format meeting details as a structured message
-    const detailsMsg = `Schedule a meeting with ${meetingForm.attendees} on ${meetingForm.date} at ${meetingForm.time} about ${meetingForm.subject}. Duration: ${meetingForm.duration} minutes. Location: ${meetingForm.location}. Description: ${meetingForm.description}`;
-    
-    // Add user message to chat
-    const userMessage: Message = {
-      role: "user",
-      content: detailsMsg,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: detailsMsg,
-          conversation_history: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          user_id: userId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get response from Remo");
-      }
-
-      const data = await response.json();
-
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: data.response,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Error scheduling meeting:", error);
-      
-      // Check if the error is due to missing Google authentication
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const isAuthError = errorMessage.includes("not authenticated") || errorMessage.includes("OAuth");
-      
-      let errorContent = "Sorry, I encountered an error while scheduling your meeting. Please try again.";
-      
-      if (isAuthError) {
-        errorContent = `❌ **Google Calendar not connected!**\n\nTo schedule meetings with Google Calendar, you need to connect your Gmail account first.\n\nGo to the **Integrations** page to connect your Gmail account.`;
-      }
-      
-      const errorMessageObj: Message = {
-        role: "assistant",
-        content: errorContent,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessageObj]);
-    } finally {
-      setIsLoading(false);
-      // Reset form
-      setMeetingForm({
-        attendees: "",
-        subject: "",
-        date: "",
-        time: "",
-        duration: "60",
-        location: "",
-        description: ""
-      });
-    }
-  };
-
   return (
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
       {/* Messages Area */}
@@ -604,64 +541,99 @@ const Home: React.FC = () => {
             </p>
           </div>
         ) : (
-          messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "justify-start"
-              }`}
-            >
+          <>
+            {messages.map((message, index) => (
               <div
-                className={`flex items-start space-x-3 max-w-xs lg:max-w-md ${
-                  message.role === "user"
-                    ? "flex-row-reverse space-x-reverse"
-                    : ""
+                key={index}
+                className={`flex ${
+                  message.role === "user" ? "justify-end" : "justify-start"
                 }`}
               >
-                {/* Avatar */}
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                  className={`flex items-start space-x-3 max-w-xs lg:max-w-md ${
                     message.role === "user"
-                      ? "bg-blue-500"
-                      : "bg-gray-200 dark:bg-gray-700"
+                      ? "flex-row-reverse space-x-reverse"
+                      : ""
                   }`}
                 >
-                  {message.role === "user" ? (
-                    <FaUser className="text-white text-sm" />
-                  ) : (
-                    <FaRobot className="text-gray-600 dark:text-gray-300 text-sm" />
-                  )}
-                </div>
-
-                {/* Message Bubble */}
-                <div
-                  className={`px-4 py-2 rounded-lg ${
-                    message.role === "user"
-                      ? "bg-blue-500 text-white"
-                      : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"
-                  }`}
-                >
-                  {message.role === "assistant" ? (
-                    <p
-                      className="text-sm whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{ __html: linkify(message.content) }}
-                    />
-                  ) : (
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  )}
-                  <p
-                    className={`text-xs mt-1 ${
+                  {/* Avatar */}
+                  <div
+                    className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                       message.role === "user"
-                        ? "text-blue-100"
-                        : "text-gray-500 dark:text-gray-400"
+                        ? "bg-blue-500"
+                        : "bg-gray-200 dark:bg-gray-700"
                     }`}
                   >
-                    {formatTime(message.timestamp)}
-                  </p>
+                    {message.role === "user" ? (
+                      <FaUser className="text-white text-sm" />
+                    ) : (
+                      <FaRobot className="text-gray-600 dark:text-gray-300 text-sm" />
+                    )}
+                  </div>
+
+                  {/* Message Bubble */}
+                  <div
+                    className={`px-4 py-2 rounded-lg ${
+                      message.role === "user"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"
+                    }`}
+                  >
+                    {message.role === "assistant" ? (
+                      <p
+                        className="text-sm whitespace-pre-wrap"
+                        dangerouslySetInnerHTML={{ __html: linkify(message.content) }}
+                      />
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    )}
+                    <p
+                      className={`text-xs mt-1 ${
+                        message.role === "user"
+                          ? "text-blue-100"
+                          : "text-gray-500 dark:text-gray-400"
+                      }`}
+                    >
+                      {formatTime(message.timestamp)}
+                    </p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+            {/* Render the meeting form as a chat card if needed */}
+            {(showMeetingForm || pendingMeetingForm) && (
+              <div className="flex justify-start">
+                <div className="w-full max-w-md">
+                  <ScheduleMeetingForm
+                    userId={userId || ""}
+                    organizerEmail={googleEmail || ""}
+                    onSuccess={(msg) => {
+                      setShowMeetingForm(false);
+                      setPendingMeetingForm(false);
+                      setMessages((prev) => [
+                        ...prev,
+                        {
+                          role: "assistant",
+                          content: msg,
+                          timestamp: new Date(),
+                        },
+                      ]);
+                    }}
+                    onError={(err) => {
+                      setMessages((prev) => [
+                        ...prev,
+                        {
+                          role: "assistant",
+                          content: `❌ ${err}`,
+                          timestamp: new Date(),
+                        },
+                      ]);
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+          </>
         )}
 
         {isLoading && (
@@ -718,48 +690,6 @@ const Home: React.FC = () => {
           </div>
         )}
 
-        {showMeetingForm && (
-          <div className="flex justify-start">
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-6 py-4 rounded-lg max-w-md w-full shadow-lg">
-              <form onSubmit={handleMeetingFormSubmit} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Attendees (emails, comma separated)</label>
-                  <input type="text" name="attendees" value={meetingForm.attendees} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Subject</label>
-                  <input type="text" name="subject" value={meetingForm.subject} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required />
-                </div>
-                <div className="flex space-x-2">
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Date</label>
-                    <input type="date" name="date" value={meetingForm.date} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Time</label>
-                    <input type="time" name="time" value={meetingForm.time} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Duration (minutes)</label>
-                  <input type="number" name="duration" value={meetingForm.duration} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required min="1" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Location</label>
-                  <input type="text" name="location" value={meetingForm.location} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
-                  <textarea name="description" value={meetingForm.description} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" rows={2} />
-                </div>
-                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg mt-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isLoading}>
-                  {isLoading ? "Scheduling..." : "Schedule Meeting"}
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
         <div ref={messagesEndRef} />
       </div>
 
@@ -774,8 +704,8 @@ const Home: React.FC = () => {
       )}
 
       <ScheduleMeetingModal
-        isOpen={showScheduleMeeting}
-        onClose={() => setShowScheduleMeeting(false)}
+        isOpen={showMeetingForm}
+        onClose={() => setShowMeetingForm(false)}
         userId={userId || ""}
       />
 

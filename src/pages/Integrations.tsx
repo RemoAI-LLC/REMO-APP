@@ -7,6 +7,8 @@ import EmailSetupModal from "../components/EmailSetupModal";
 const Integrations: React.FC = () => {
   const { user } = usePrivy();
   const userId = user?.id;
+  console.log('[DEBUG] Integrations page user:', user);
+  console.log('[DEBUG] Integrations page userId:', userId);
   const [showEmailSetup, setShowEmailSetup] = useState(false);
   const [emailConnected, setEmailConnected] = useState(false);
 
@@ -48,6 +50,11 @@ const Integrations: React.FC = () => {
         </>
       ) : (
         <p className="text-gray-600">Please log in to connect your Gmail account.</p>
+      )}
+      {!userId && (
+        <div className="bg-yellow-100 text-yellow-800 rounded p-2 mt-4 text-sm">
+          [DEBUG] No userId found. Privy user may not be loaded yet.
+        </div>
       )}
     </div>
   );

@@ -66,7 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
           </span>
         </Link>
         <Link
-          to="/usecases"
+          to="/integrations"
           className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
@@ -82,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
         </Link>
         <div className="my-3 border-t border-brand-borders opacity-50"></div>
         <Link
-          to="/usecases"
+          to="/usage"
           className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
@@ -97,7 +97,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
           </span>
         </Link>
         <Link
-          to="/usecases"
+          to="/billing"
           className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
@@ -113,7 +113,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
         </Link>
         <div className="my-3 border-t border-brand-borders opacity-50"></div>
         <Link
-          to="/usecases"
+          to="/settings"
           className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
@@ -128,7 +128,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
           </span>
         </Link>
         <Link
-          to="/usecases"
+          to="/docs"
           className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
@@ -143,7 +143,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
           </span>
         </Link>
         <Link
-          to="/usecases"
+          to="/contact"
           className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">

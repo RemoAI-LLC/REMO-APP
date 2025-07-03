@@ -94,7 +94,7 @@ const plans: Plan[] = [
 ];
 
 const Pricing: React.FC = () => {
-  const [billing, setBilling] = useState<BillingOption>("annual");
+  const [billing, setBilling] = useState<BillingOption>("monthly");
 
   return (
     <div className="min-h-screen bg-white text-gray-900 py-20 px-4">

@@ -4,8 +4,14 @@ import { FaUser, FaRobot } from "react-icons/fa";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { usePrivy } from "@privy-io/react-auth";
 import EmailSetupModal from "../components/EmailSetupModal";
-import { detectEmailIntent, getEmailSuggestions } from "../utils/emailIntentDetection";
+import {
+  detectEmailIntent,
+  getEmailSuggestions,
+} from "../utils/emailIntentDetection";
 import ScheduleMeetingModal from "../components/ScheduleMeetingModal";
+import logo from "../assets/MainLogo.png";
+import { Link } from "react-router-dom";
+import { RotateWords } from "../components/RotateWords";
 
 const placeholderText = "Hi I'm Remo! Your Personal AI Assistant";
 
@@ -43,9 +49,10 @@ interface Message {
 
 // Utility to linkify URLs in text
 function linkify(text: string) {
-  const urlRegex = /(https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+)|(www\.[\w\-._~:/?#[\]@!$&'()*+,;=%]+)/gi;
+  const urlRegex =
+    /(https?:\/\/[\w\-._~:/?#[\]@!$&'()*+,;=%]+)|(www\.[\w\-._~:/?#[\]@!$&'()*+,;=%]+)/gi;
   return text.replace(urlRegex, (url) => {
-    const href = url.startsWith('http') ? url : `http://${url}`;
+    const href = url.startsWith("http") ? url : `http://${url}`;
     return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline break-all">${url}</a>`;
   });
 }
@@ -81,7 +88,7 @@ const Home: React.FC = () => {
     time: "",
     duration: "60",
     location: "",
-    description: ""
+    description: "",
   });
 
   // Get user ID from Privy
@@ -286,7 +293,7 @@ const Home: React.FC = () => {
 
     // Check for email intent
     const emailIntent = detectEmailIntent(inputText);
-    
+
     const userMessage: Message = {
       role: "user",
       content: inputText,
@@ -298,7 +305,11 @@ const Home: React.FC = () => {
     setIsLoading(true);
 
     // If email intent detected and Gmail not connected, show setup prompt
-    if (emailIntent.type !== 'none' && emailIntent.confidence > 0.7 && !emailConnected) {
+    if (
+      emailIntent.type !== "none" &&
+      emailIntent.confidence > 0.7 &&
+      !emailConnected
+    ) {
       const setupMessage: Message = {
         role: "assistant",
         content: `📧 I detected you want to work with emails! To use email features, you'll need to connect your Gmail account first.\n\nClick the "Connect Gmail" button in the top right, or I can help you with other tasks like reminders and todos.`,
@@ -373,7 +384,11 @@ const Home: React.FC = () => {
     setIsLoading(true);
 
     // If email intent detected and Gmail not connected, show setup prompt
-    if (emailIntent.type !== 'none' && emailIntent.confidence > 0.7 && !emailConnected) {
+    if (
+      emailIntent.type !== "none" &&
+      emailIntent.confidence > 0.7 &&
+      !emailConnected
+    ) {
       const setupMessage: Message = {
         role: "assistant",
         content: `📧 I detected you want to work with emails! To use email features, you'll need to connect your Gmail account first.\n\nClick the "Connect Gmail" button in the top right, or I can help you with other tasks like reminders and todos.`,
@@ -493,7 +508,8 @@ const Home: React.FC = () => {
     // Add a success message to chat
     const successMessage: Message = {
       role: "assistant",
-      content: "✅ Gmail connected successfully! You can now use email features in chat. Try saying:\n• 'Schedule a meeting for tomorrow'\n• 'Send an email to john@example.com'\n• 'Search my emails for project updates'",
+      content:
+        "✅ Gmail connected successfully! You can now use email features in chat. Try saying:\n• 'Schedule a meeting for tomorrow'\n• 'Send an email to john@example.com'\n• 'Search my emails for project updates'",
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, successMessage]);
@@ -504,17 +520,19 @@ const Home: React.FC = () => {
     checkEmailAuthStatus(); // Re-check status after modal closes
   };
 
-  const handleMeetingFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleMeetingFormChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setMeetingForm({ ...meetingForm, [e.target.name]: e.target.value });
   };
 
   const handleMeetingFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setShowMeetingForm(false);
-    
+
     // Format meeting details as a structured message
     const detailsMsg = `Schedule a meeting with ${meetingForm.attendees} on ${meetingForm.date} at ${meetingForm.time} about ${meetingForm.subject}. Duration: ${meetingForm.duration} minutes. Location: ${meetingForm.location}. Description: ${meetingForm.description}`;
-    
+
     // Add user message to chat
     const userMessage: Message = {
       role: "user",
@@ -555,17 +573,21 @@ const Home: React.FC = () => {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error scheduling meeting:", error);
-      
+
       // Check if the error is due to missing Google authentication
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      const isAuthError = errorMessage.includes("not authenticated") || errorMessage.includes("OAuth");
-      
-      let errorContent = "Sorry, I encountered an error while scheduling your meeting. Please try again.";
-      
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      const isAuthError =
+        errorMessage.includes("not authenticated") ||
+        errorMessage.includes("OAuth");
+
+      let errorContent =
+        "Sorry, I encountered an error while scheduling your meeting. Please try again.";
+
       if (isAuthError) {
         errorContent = `❌ **Google Calendar not connected!**\n\nTo schedule meetings with Google Calendar, you need to connect your Gmail account first.\n\nGo to the **Integrations** page to connect your Gmail account.`;
       }
-      
+
       const errorMessageObj: Message = {
         role: "assistant",
         content: errorContent,
@@ -582,7 +604,7 @@ const Home: React.FC = () => {
         time: "",
         duration: "60",
         location: "",
-        description: ""
+        description: "",
       });
     }
   };
@@ -592,16 +614,18 @@ const Home: React.FC = () => {
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="text-center text-gray-500 dark:text-gray-400 mt-20">
-            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
-              <FaRobot className="text-blue-500 text-2xl" />
-            </div>
-            <h2 className="text-xl font-semibold mb-2">Welcome to Remo!</h2>
-            <p className="text-sm max-w-md mx-auto">
-              I'm your personal AI assistant. I can help you with reminders,
-              tasks, emails, and much more. Start a conversation by typing or using
-              voice input!
-            </p>
+          <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400">
+            <Link to="/" className="mb-4">
+              <img src={logo} alt="Logo" className="h-10 w-auto rounded-full" />
+            </Link>
+            <h2 className="text-2xl font-semibold mb-2">Welcome to Remo!</h2>
+            <p className="text-lg mb-2">I'm your personal AI assistant.</p>
+            <RotateWords
+              text="I can help you with:"
+              words={["reminders", "tasks", "shopping", "notes", "ideas"]}
+            />
+
+            {InputBox}
           </div>
         ) : (
           messages.map((message, index) => (
@@ -644,10 +668,14 @@ const Home: React.FC = () => {
                   {message.role === "assistant" ? (
                     <p
                       className="text-sm whitespace-pre-wrap"
-                      dangerouslySetInnerHTML={{ __html: linkify(message.content) }}
+                      dangerouslySetInnerHTML={{
+                        __html: linkify(message.content),
+                      }}
                     />
                   ) : (
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap">
+                      {message.content}
+                    </p>
                   )}
                   <p
                     className={`text-xs mt-1 ${
@@ -723,36 +751,102 @@ const Home: React.FC = () => {
             <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-6 py-4 rounded-lg max-w-md w-full shadow-lg">
               <form onSubmit={handleMeetingFormSubmit} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Attendees (emails, comma separated)</label>
-                  <input type="text" name="attendees" value={meetingForm.attendees} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required />
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Attendees (emails, comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    name="attendees"
+                    value={meetingForm.attendees}
+                    onChange={handleMeetingFormChange}
+                    className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Subject</label>
-                  <input type="text" name="subject" value={meetingForm.subject} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required />
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Subject
+                  </label>
+                  <input
+                    type="text"
+                    name="subject"
+                    value={meetingForm.subject}
+                    onChange={handleMeetingFormChange}
+                    className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
+                  />
                 </div>
                 <div className="flex space-x-2">
                   <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Date</label>
-                    <input type="date" name="date" value={meetingForm.date} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required />
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Date
+                    </label>
+                    <input
+                      type="date"
+                      name="date"
+                      value={meetingForm.date}
+                      onChange={handleMeetingFormChange}
+                      className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
+                    />
                   </div>
                   <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Time</label>
-                    <input type="time" name="time" value={meetingForm.time} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required />
+                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Time
+                    </label>
+                    <input
+                      type="time"
+                      name="time"
+                      value={meetingForm.time}
+                      onChange={handleMeetingFormChange}
+                      className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                      required
+                    />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Duration (minutes)</label>
-                  <input type="number" name="duration" value={meetingForm.duration} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required min="1" />
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Duration (minutes)
+                  </label>
+                  <input
+                    type="number"
+                    name="duration"
+                    value={meetingForm.duration}
+                    onChange={handleMeetingFormChange}
+                    className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    required
+                    min="1"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Location</label>
-                  <input type="text" name="location" value={meetingForm.location} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Location
+                  </label>
+                  <input
+                    type="text"
+                    name="location"
+                    value={meetingForm.location}
+                    onChange={handleMeetingFormChange}
+                    className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                  />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">Description</label>
-                  <textarea name="description" value={meetingForm.description} onChange={handleMeetingFormChange} className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" rows={2} />
+                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
+                    Description
+                  </label>
+                  <textarea
+                    name="description"
+                    value={meetingForm.description}
+                    onChange={handleMeetingFormChange}
+                    className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
+                    rows={2}
+                  />
                 </div>
-                <button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg mt-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled={isLoading}>
+                <button
+                  type="submit"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isLoading}
+                >
                   {isLoading ? "Scheduling..." : "Schedule Meeting"}
                 </button>
               </form>

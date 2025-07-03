@@ -73,8 +73,8 @@ const Topbar: React.FC = () => {
   };
 
   return (
-    <header className="w-full h-16 bg-gray-900 text-white border-b border-gray-700 z-40 flex items-center justify-between px-6">
-      <h1 className="text-lg font-bold text-white">REMO</h1>
+    <header className="w-full h-16 z-40 flex items-center justify-between px-6">
+      <h1 className="text-lg font-bold ">REMO</h1>
       <div className="flex items-center gap-4">
         {ready && authenticated ? (
           <div className="relative" ref={dropdownRef}>
@@ -94,14 +94,14 @@ const Topbar: React.FC = () => {
                 </div>
               )}
               {isUserDropdownOpen ? (
-                <IoChevronUpSharp className="w-4 h-4" />
+                <IoChevronUpSharp className="w-4 h-4 text-black" />
               ) : (
-                <IoChevronDownSharp className="w-4 h-4" />
+                <IoChevronDownSharp className="w-4 h-4 text-black" />
               )}
             </button>
 
             {isUserDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 py-1 bg-[#fafafa] rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50">
+              <div className="absolute right-0 mt-2 w-48 py-1 bg-[#fafafa] border border-gray-400 rounded-md shadow-lg ring-1 ring-black/5 focus:outline-none z-50">
                 <span className="text-sm font-medium text-gray-500 px-4 py-2 block">
                   {getUserDisplayName()}
                 </span>

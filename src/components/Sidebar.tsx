@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "../assets/Main Logo.jpg";
+import logo from "../assets/MainLogo.png";
 // import collapsedLogo from "../assets/Logo1.jpeg";
 import { IoGridOutline } from "react-icons/io5";
 import { IoCubeOutline } from "react-icons/io5";
@@ -31,7 +31,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
 
   return (
     <div
-      className={`transition-all duration-300 bg-gray-900 text-white fixed top-0 left-0 h-screen z-50 ${
+      className={`transition-all duration-300  border-r border-gray-300 text-text fixed top-0 left-0 h-screen z-50 ${
         isSidebarExpanded ? "w-64" : "w-16"
       } flex flex-col`}
       onMouseEnter={handleMouseEnter}
@@ -52,7 +52,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
       <nav className="flex-1 px-2 py-4 space-y-2">
         <Link
           to="/usecases"
-          className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
+          className="flex items-center px-4 py-2 rounded hover:bg-[#dddddd] transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
             <IoGridOutline size={20} />
@@ -67,7 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
         </Link>
         <Link
           to="/integrations"
-          className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
+          className="flex items-center px-4 py-2 rounded hover:bg-[#dddddd] transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
             <IoCubeOutline size={20} />
@@ -80,10 +80,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
             Integrations
           </span>
         </Link>
-        <div className="my-3 border-t border-brand-borders opacity-50"></div>
+        <div className="my-3 border-t border-brand-borders border-gray-400 opacity-50"></div>
         <Link
           to="/usage"
-          className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
+          className="flex items-center px-4 py-2 rounded hover:bg-[#dddddd] transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
             <FiBarChart2 size={20} />
@@ -98,7 +98,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
         </Link>
         <Link
           to="/billing"
-          className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
+          className="flex items-center px-4 py-2 rounded hover:bg-[#dddddd] transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
             <TbFileInvoice size={20} />
@@ -111,10 +111,10 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
             Billing
           </span>
         </Link>
-        <div className="my-3 border-t border-brand-borders opacity-50"></div>
+        <div className="my-3 border-t border-brand-borders border-gray-400 opacity-50"></div>
         <Link
           to="/settings"
-          className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
+          className="flex items-center px-4 py-2 rounded hover:bg-[#dddddd] transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
             <CiSettings size={20} />
@@ -131,7 +131,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
           href="https://docs.hireremo.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
+          className="flex items-center px-4 py-2 rounded hover:bg-[#dddddd] transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
             <GrDocumentText size={20} />
@@ -147,7 +147,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
 
         <Link
           to="/contact"
-          className="flex items-center px-4 py-2 rounded hover:bg-gray-800 transition-all duration-300"
+          className="flex items-center px-4 py-2 rounded hover:bg-[#dddddd] transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
             <CiMail size={20} />

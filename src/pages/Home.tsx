@@ -19,7 +19,7 @@ const placeholderText = "Hi I'm Remo! Your Personal AI Assistant";
 // Backend API configuration
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-   "https://remo-server.onrender.com" ||
+  "https://remo-server.onrender.com" ||
   "http://localhost:8000";
 
 // Type declarations for Web Speech API
@@ -714,7 +714,7 @@ const Home: React.FC = () => {
                         className="w-full h-full object-cover rounded-full"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white font-semibold text-sm uppercase">
+                      <div className="w-full h-full rounded-full flex items-center justify-center bg-blue-500 text-white font-semibold text-sm uppercase">
                         {getUserInitial(user)}
                       </div>
                     )

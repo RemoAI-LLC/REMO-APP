@@ -610,8 +610,64 @@ const Home: React.FC = () => {
     }
   };
 
+  const InputBox = (
+    <form
+      onSubmit={handleSendMessage}
+      className="w-full max-w-4xl mx-auto px-4 py-8"
+    >
+      <div className="relative bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl shadow-sm px-4 pt-2 pb-12">
+        {/* Textarea */}
+        <textarea
+          className="w-full resize-none bg-transparent text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none max-h-[14rem] min-h-[2.5rem] overflow-y-auto"
+          placeholder={isListening ? "Listening..." : placeholderText}
+          value={isListening ? transcript : inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          rows={2}
+          disabled={isLoading || isRecording}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              handleSendMessage(e);
+            }
+          }}
+        />
+
+        {/* Icons in bottom-right corner */}
+        <div className="absolute bottom-2 right-3 flex items-center gap-2">
+          {/* Mic button */}
+          <button
+            type="button"
+            onClick={toggleRecording}
+            disabled={isLoading}
+            className={`p-2 rounded-full transition ${
+              isRecording
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
+            } text-white`}
+            title={isRecording ? "Stop recording" : "Start voice recording"}
+          >
+            {isRecording ? (
+              <FaMicrophoneSlash size={16} />
+            ) : (
+              <FaMicrophone size={16} />
+            )}
+          </button>
+
+          {/* Send button */}
+          <button
+            type="submit"
+            disabled={isLoading || !inputText.trim()}
+            className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <IoIosSend size={16} />
+          </button>
+        </div>
+      </div>
+    </form>
+  );
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
@@ -625,7 +681,6 @@ const Home: React.FC = () => {
               text="I can help you with:"
               words={["reminders", "tasks", "shopping", "notes", "ideas"]}
             />
-
             {InputBox}
           </div>
         ) : (
@@ -652,9 +707,23 @@ const Home: React.FC = () => {
                   }`}
                 >
                   {message.role === "user" ? (
-                    <FaUser className="text-white text-sm" />
+                    getUserImage(user) ? (
+                      <img
+                        src={getUserImage(user)!}
+                        alt="User"
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-blue-500 text-white font-semibold text-sm uppercase">
+                        {getUserInitial(user)}
+                      </div>
+                    )
                   ) : (
-                    <FaRobot className="text-gray-600 dark:text-gray-300 text-sm" />
+                    <img
+                      src={logo}
+                      alt="Remo AI"
+                      className="w-full h-full object-cover "
+                    />
                   )}
                 </div>
 
@@ -875,54 +944,7 @@ const Home: React.FC = () => {
       />
 
       {/* Input Area */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <form onSubmit={handleSendMessage} className="flex items-end gap-4">
-          <div className="flex-1 rounded-2xl border border-gray-200 dark:border-gray-600 shadow-sm px-6 py-4 bg-gray-50 dark:bg-gray-700 min-h-[60px]">
-            <textarea
-              className="w-full resize-none border-none outline-none bg-transparent text-lg p-0 min-h-[32px] max-h-40 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              placeholder={isListening ? "Listening..." : placeholderText}
-              value={isListening ? transcript : inputText}
-              onChange={(e) => setInputText(e.target.value)}
-              rows={1}
-              disabled={isLoading || isRecording}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage(e);
-                }
-              }}
-            />
-          </div>
-
-          {/* Voice Recording Button */}
-          <button
-            type="button"
-            onClick={toggleRecording}
-            disabled={isLoading}
-            className={`p-3 rounded-full transition flex items-center justify-center ${
-              isRecording
-                ? "bg-red-500 text-white hover:bg-red-600"
-                : "bg-gray-500 text-white hover:bg-gray-600"
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
-            title={isRecording ? "Stop recording" : "Start voice recording"}
-          >
-            {isRecording ? (
-              <FaMicrophoneSlash size={20} />
-            ) : (
-              <FaMicrophone size={20} />
-            )}
-          </button>
-
-          {/* Send Button */}
-          <button
-            type="submit"
-            disabled={isLoading || !inputText.trim()}
-            className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-          >
-            <IoIosSend size={20} />
-          </button>
-        </form>
-      </div>
+      {messages.length > 0 && <div className="py-4">{InputBox}</div>}
     </div>
   );
 };

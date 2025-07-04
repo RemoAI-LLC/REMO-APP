@@ -26,26 +26,55 @@ const Topbar: React.FC = () => {
 
   const getUserDisplayName = () => {
     if (!user) return "";
-    if (user.google?.name) return user.google.name;
-    if (user.discord?.username) return user.discord.username;
-    if (user.twitter?.name) return user.twitter.name;
-    if (user.github?.name) return user.github.name;
-    if (user.email?.address) return user.email.address.split("@")[0];
-    return "User";
+    return (
+      user.google?.name ||
+      user.linkedin?.name ||
+      user.twitter?.name ||
+      user.discord?.username ||
+      user.github?.name ||
+      user.email?.address?.split("@")[0] ||
+      "User"
+    );
   };
 
-  const getUserImage = () => {
-    return ""; // No image logic for now
+  const getUserImage = (): string | null => {
+    if (!user) return null;
+
+    const imageSources = [user.twitter?.profilePictureUrl];
+
+    for (const src of imageSources) {
+      if (typeof src === "string" && src.trim() !== "") {
+        return src;
+      }
+    }
+
+    return null; // fallback to initials
   };
 
-  const getUserInitial = () => {
-    const name = getUserDisplayName();
-    return name ? name.charAt(0).toUpperCase() : "?";
+  const getUserInitial = (): string => {
+    if (!user) return "?";
+
+    const nameSources = [
+      user.google?.name,
+      user.linkedin?.name,
+      user.twitter?.name,
+      user.discord?.username,
+      user.github?.name,
+      user.email?.address?.split("@")[0],
+    ];
+
+    for (const name of nameSources) {
+      if (typeof name === "string" && name.trim() !== "") {
+        return name.trim().charAt(0).toUpperCase();
+      }
+    }
+
+    return "?";
   };
 
   return (
-    <header className="w-full h-16 bg-gray-900 text-white border-b border-gray-700 z-40 flex items-center justify-between px-6">
-      <h1 className="text-lg font-bold text-white">REMO</h1>
+    <header className="w-full h-16 z-40 flex items-center justify-between px-6">
+      <h1 className="text-lg font-bold ">REMO</h1>
       <div className="flex items-center gap-4">
         {ready && authenticated ? (
           <div className="relative" ref={dropdownRef}>
@@ -55,7 +84,7 @@ const Topbar: React.FC = () => {
             >
               {getUserImage() ? (
                 <img
-                  src={getUserImage()}
+                  src={getUserImage()!}
                   alt="Profile"
                   className="w-8 h-8 rounded-full object-cover border border-white"
                 />
@@ -65,14 +94,14 @@ const Topbar: React.FC = () => {
                 </div>
               )}
               {isUserDropdownOpen ? (
-                <IoChevronUpSharp className="w-4 h-4" />
+                <IoChevronUpSharp className="w-4 h-4 text-black" />
               ) : (
-                <IoChevronDownSharp className="w-4 h-4" />
+                <IoChevronDownSharp className="w-4 h-4 text-black" />
               )}
             </button>
 
             {isUserDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-48 py-1 bg-[#fafafa] rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+              <div className="absolute right-0 mt-2 w-48 py-1 bg-[#fafafa] border border-gray-400 rounded-md shadow-lg ring-1 ring-black/5 focus:outline-none z-50">
                 <span className="text-sm font-medium text-gray-500 px-4 py-2 block">
                   {getUserDisplayName()}
                 </span>

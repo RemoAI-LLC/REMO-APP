@@ -5,6 +5,7 @@ import SmartApply from "../pages/SmartApply";
 import Usecases from "../pages/Usecases";
 import Integrations from "../pages/Integrations";
 import Pricing from "../pages/Pricing";
+import PaymentSuccess from "../pages/PaymentSuccess";
 // import UsecasePage from '../pages/UsecasePage';
 
 const AppRoutes: React.FC = () => {
@@ -16,6 +17,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/SmartApply" element={<SmartApply />} />
       <Route path="/integrations" element={<Integrations />} />
       <Route path="/Pricing" element={<Pricing />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
     </Routes>
   );
 };

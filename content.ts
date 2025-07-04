@@ -1,6 +1,23 @@
-import AI from "./src/assets/Usecases/AI.jpg"
-import blog1 from "./src/assets/Blogs/Japan.jpg";
-import logo from "./src/assets/FooterLogo.svg";
+import Email_Agent from "./src/assets/Usecases/Email_Agent.gif";
+import Email_AgentDark from "./src/assets/Usecases/Email_AgentDark.gif";
+import To_do from "./src/assets/Usecases/To-dos.gif";
+import ToDoDark from "./src/assets/Usecases/To-dos_Dark.gif";
+import Foodorder from "./src/assets/Usecases/FoodOrder.gif";
+import FoodOrderDark from "./src/assets/Usecases/FoodOrderDark.gif";
+import Remainders from "./src/assets/Usecases/Remainders.gif";
+import RemaindersDark from "./src/assets/Usecases/RemaindersDark.gif";
+import JobApply from "./src/assets/Usecases/Job_Apply.gif";
+import JobApplyDark from "./src/assets/Usecases/Job_Apply_Dark.gif";
+import blog1 from "./src/assets/Blogs/MEETREMO.png";
+import blog2 from "./src/assets/Blogs/REMOAI_Assistant.png";
+import blog3 from "./src/assets/Blogs/Blog4.png";
+import blog6 from "./src/assets/Blogs/REMOvsTraditionalAI.png"
+import blog5 from "./src/assets/Blogs/Blog5.png";
+import blog4 from "./src/assets/Blogs/Blog6.png";
+import logo from "./src/assets/MainLogo.png";
+
+import { FaTelegram, FaTwitter, FaLinkedin, FaDiscord } from "react-icons/fa";
+import type { IconType } from "react-icons";
 
 export interface NavLink {
   id: string;
@@ -10,17 +27,21 @@ export interface NavLink {
 export interface UseCaseItem {
   title: string;
   desc: string;
-  category: string;
   img: string;
-  learnmore: string,
-  redirectUrl: string,
+  darkImg?: string;
+  learnmore: string;
+  redirectUrl: string;
+  size: string;
 }
 
 export interface BlogItem {
   title: string;
-  desc: string;
-  img: string;
-  learnmore: string,
+  img?: string;
+  redirectUrl: string;
+  description?: string;
+  timestamp: string;
+  buttonLabel?: string;
+  type?: "article" | "quote" | "minimal" | "overlay";
 }
 
 export interface FooterContent {
@@ -29,40 +50,37 @@ export interface FooterContent {
   phone: string;
   email: string;
   quickLinks: string[];
-  social: string[];
-  legal: string[];
+  social: { name: string; url: string; icon: IconType }[];
+  legal: { label: string; url: string }[];
   copyright: string;
   labels: {
-    quickLinks: string,
-    social: string,
-    legal: string,
-    phone: string,
-    email: string,
+    quickLinks: string;
+    social: string;
+    legal: string;
+    phone: string;
+    email: string;
   };
 }
 
 export interface LanguageContent {
   navLinks: NavLink[];
   banner: {
-    title: string,
-    description: string,
-    videoId: string,
-    videoTitle: string,
+    title: string;
+    description: string;
+    videoId?: string;
+    videoTitle?: string;
   };
   usecases: {
-    title: string,
-    subtitle: string,
-    exploreButton: string,
-    
-    filters: string[],
-    items: UseCaseItem[],
+    title: string;
+    subtitle: string;
+    exploreButton: string;
+    items: UseCaseItem[];
   };
   blogs: {
-    title: string,
-    subtitle: string,
-    exploreButton: string,
-    
-    items: BlogItem[],
+    title: string;
+    subtitle: string;
+    exploreButton: string;
+    items: BlogItem[];
   };
   footer: FooterContent;
 }
@@ -72,131 +90,128 @@ const content: Record<string, LanguageContent> = {
     navLinks: [
       { id: "usecases", title: "Use Cases" },
       { id: "blogs", title: "Blogs" },
-      { id: "aboutus", title: "About Us" },
+      { id: "pricing", title: "Pricing" },
       { id: "getstarted", title: "Get Started" },
     ],
     banner: {
-      title: "Your REMO",
-      description:
-        "Remo is a Personal AI Assistant combined with the AI Agents that manages all the daily tasks as a professional and personal Assistant. Remo makes the work easy and manageable.",
-      videoId: "F8NKVhkZZWI",
-      videoTitle: "What are AI Agents?",
+      title: "Hello, I am Remo",
+      description: "Personal AI Assistant can be hired by every human on the Planet",
     },
     usecases: {
-      title: "Explore the use cases based on categories",
+      title: "Remo Works on",
       subtitle: "Hire Remo and make your works easy",
       exploreButton: "Explore more use cases →",
-      filters: [
-        "Top Notch",
-        "Industry",
-        "Career",
-        "Education",
-        "Web 3",
-        "Social Media",
-        "Life Style",
-      ],
       items: [
         {
-          title: "Generate Smart Resume",
-          desc: "Use our AI agent to analyze job descriptions and auto-tailor your resume for each role.",
-          category: "Career",
+          title: "Draft Emails ",
+          desc: "Let our AI draft emails for you, saving you time and ensuring your messages are clear and professional.",
           learnmore: "Learn more →",
-          redirectUrl: "/",
-          img: AI,
+          redirectUrl: "https://docs.remo.gg",
+          img: Email_Agent,
+          darkImg: Email_AgentDark,
+          size: "normal",
         },
         {
-          title: "SmartApply AI",
-          desc: "Use our AI to analyze job descriptions, tailor your resume, and apply to jobs seamlessly.",
-          category: "Career",
+          title: "Order Food",
+          desc: "Order your favorite meals effortlessly using our AI assistant, which can handle everything from menu selection to payment.",
           learnmore: "Learn more →",
-          redirectUrl: "/SmartApply",
-          img: AI,
-        },
-        
-        {
-          title: "Compare Market Competitors",
-          desc: "Let the AI research and summarize competitive product analysis in minutes.",
-          category: "Industry",
-          learnmore: "Learn more →",
-          redirectUrl: "/",
-          img: AI,
+          redirectUrl: "https://docs.remo.gg",
+          img: Foodorder,
+          darkImg: FoodOrderDark,
+          size: "normal",
         },
         {
-          title: "Visualize Stock Trends",
-          desc: "Use our finance agent to explore trends and generate interactive charts.",
-          category: "Top Notch",
+          title: "Manage your To-Do List",
+          desc: "Use our AI agent to manage your tasks, set reminders, and keep your to-do list organized.",
           learnmore: "Learn more →",
-          redirectUrl: "/",
-          img: AI,
+          redirectUrl: "https://docs.remo.gg",
+          img: To_do,
+          darkImg: ToDoDark,
+          size: "tall",
         },
         {
-          title: "Plan Your Day Efficiently",
-          desc: "Lifestyle AI creates optimized daily routines and reminders for your schedule.",
-          category: "Education",
+          title: "Apply for Jobs",
+          desc: "Order your favorite meals effortlessly using our AI assistant, which can handle everything from menu selection to payment.",
           learnmore: "Learn more →",
-          redirectUrl: "/",
-          img: AI,
+          redirectUrl: "https://docs.remo.gg",
+          img: JobApply,
+          darkImg: JobApplyDark,
+          size: "normal",
         },
         {
-          title: "Research with AI Agents",
-          desc: "Ask complex research questions and get answers with citations and summaries.",
-          category: "Web 3",
+          title: "Set Reminders",
+          desc: "Let our AI draft emails for you, saving you time and ensuring your messages are clear and professional.",
           learnmore: "Learn more →",
-          redirectUrl: "/",
-          img: AI,
-        },
-        {
-          title: "Onboard New Employees",
-          desc: "HR agents can auto-generate onboarding plans, checklists, and internal docs.",
-          category: "Social Media",
-          learnmore: "Learn more →",
-          redirectUrl: "/",
-          img: AI,
+          redirectUrl: "https://docs.remo.gg",
+          img: Remainders,
+          darkImg: RemaindersDark,
+          size: "normal",
         },
       ],
     },
     blogs: {
       title: "Read our latest blog posts",
-      subtitle:
-        "Insights, stories, and updates from the Remo team and community.",
+      subtitle: "Insights, stories, and updates from the Remo team and community.",
       exploreButton: "Explore more blogs →",
       items: [
         {
-          title: "How Remo is Revolutionizing Personal AI",
-          desc: "A deep dive into the technology and philosophy behind Remo, and how it is changing the way we interact with AI.",
+          title: "Meet Remo: Your personal AI Assistant",
           img: blog1,
-          learnmore: "Learn more →",
+          redirectUrl: "https://substack.com/@hireremo/p-166561971",
+          description: "Explore how Remo is redefining personal productivity using AI.",
+          timestamp: "June 15, 2025",
+          buttonLabel: "Read More",
+          type: "article",
         },
         {
-          title: "10 Surprising Use Cases for Remo",
-          desc: "Discover unique and unexpected ways people are using Remo to improve their daily lives and workflows.",
-          img: blog1,
-          learnmore: "Learn more →",
+          title: "REMO 101",
+          description:"A personal AI Assistant that can be hired by every human on the planet. Personal assistants are not just for the rich anymore!!",
+          img: blog2,
+          redirectUrl: "https://substack.com/@hireremo/p-166678115",
+          timestamp: "June 18, 2025",
+          buttonLabel: "Read More",
+          type: "overlay",
         },
         {
-          title: "The Future of AI Assistants",
-          desc: "Exploring the trends and innovations shaping the next generation of AI-powered personal assistants.",
-          img: blog1,
-          learnmore: "Learn more →",
+          title: "Personalizing Your Own AI Assistant: Why Remo Is Different",
+          img: blog3,
+          redirectUrl: "https://substack.com/home/post/p-166678355",
+          description: "Unlocking the next generation of digital productivity through true personalization.",
+          timestamp: "June 15, 2025",
+          buttonLabel: "Read More",
+          type: "article",
         },
         {
-          title: "Integrating Remo with Your Favorite Tools",
-          desc: "Step-by-step guides on connecting Remo to popular productivity and communication platforms.",
-          img: blog1,
-          learnmore: "Learn more →",
+          title: "REMO 101",
+          description:"A personal AI Assistant that can be hired by every human on the planet. Personal assistants are not just for the rich anymore!!",
+          img: blog5,
+          redirectUrl: "https://substack.com/@hireremo/p-166678115",
+          timestamp: "June 18, 2025",
+          buttonLabel: "Read More",
+          type: "article",
+        },
+        
+        {
+          title: "Currently at the SF Museum of Modern Art",
+          img: blog4,
+          redirectUrl: "https://substack.com/@hireremo/p-166678451",
+          description: "Exploring AI-generated art at the intersection of creativity and code.",
+          timestamp: "June 19, 2025",
+          buttonLabel: "Read More",
+          type: "article",
         },
         {
-          title: "Bonus: Behind the Scenes at Remo",
-          desc: "Go behind the scenes to learn how the Remo team builds and tests cutting-edge features.",
-          img: blog1,
-          learnmore: "Learn more →",
+          title: "Remo vs Traditional AI's",
+          img: blog6,
+          redirectUrl: "https://substack.com/@hireremo/p-166678451",
+          description: "Discover how Remo makes AI more personal, powerful, and practical.",
+          timestamp: "June 15, 2025",
+          buttonLabel: "Read More",
+          type: "article",
         },
-        {
-          title: "Integrating Remo with Your Favorite Tools",
-          desc: "Step-by-step guides on connecting Remo to popular productivity and communication platforms.",
-          img: blog1,
-          learnmore: "Learn more →",
-        },
+        
+        
+        
       ],
     },
     footer: {
@@ -209,8 +224,17 @@ const content: Record<string, LanguageContent> = {
       phone: "+1 901-219-1273",
       email: "support@remo.com",
       quickLinks: ["Pricing", "Resources", "About us", "FAQ", "Contact us"],
-      social: ["Facebook", "Instagram", "LinkedIn", "Twitter", "Youtube"],
-      legal: ["Terms of service", "Privacy policy", "Cookie policy"],
+      social: [
+        { name: "Twitter", url: "https://x.com/hireremo", icon: FaTwitter },
+        { name: "LinkedIn", url: "https://www.linkedin.com/company/remoai-hq/", icon: FaLinkedin },
+        { name: "Discord", url: "https://discord.gg/bvhFdHnjwd", icon: FaDiscord },
+        { name: "Telegram", url: "https://t.me/RemoAI_HQ", icon: FaTelegram },
+      ],
+      legal: [
+        { label: "Support", url: "/support" },
+        { label: "Terms of service", url: "/terms-of-service" },
+        { label: "Privacy policy", url: "/privacy-policy" },
+      ],
       copyright: "© 2025 Remo AI. All rights reserved.",
       labels: {
         quickLinks: "Quick links",
@@ -220,161 +244,7 @@ const content: Record<string, LanguageContent> = {
         email: "Email",
       },
     },
-  },
-
-  es: {
-    navLinks: [
-      { id: "usecases", title: "Casos de Uso" },
-      { id: "blogs", title: "Blogs" },
-      { id: "aboutus", title: "Sobre Nosotros" },
-      { id: "getstarted", title: "Empezar" },
-    ],
-    banner: {
-      title: "Tu REMO",
-      description:
-        "Remo es un asistente de IA personal combinado con agentes de IA que gestiona todas las tareas diarias como un asistente profesional y personal. Remo hace que el trabajo sea fácil y manejable.",
-      videoId: "F8NKVhkZZWI",
-      videoTitle: "¿Qué son los agentes de IA?",
-    },
-    usecases: {
-      title: "Explora los casos de uso por categoría",
-      subtitle: "Contrata a Remo y haz tu trabajo más fácil",
-      exploreButton: "Explorar más casos de uso →",
-      filters: [
-        "Top Notch",
-        "Industry",
-        "Career",
-        "Education",
-        "Web 3",
-        "Social Media",
-        "Life Style",
-      ],
-      items: [
-        {
-          title: "Generar currículum inteligente",
-          desc: "Usa nuestro agente de IA para analizar descripciones de trabajo y personalizar tu currículum.",
-          category: "Career",
-          learnmore: "Aprender más →",
-          redirectUrl: "http://localhost:5173",
-          img: AI,
-        },
-        {
-          title: "Comparar competidores del mercado",
-          desc: "Permite que la IA investigue y resuma análisis competitivos en minutos.",
-          category: "Industry",
-          learnmore: "Aprender más →",
-          redirectUrl: "http://localhost:5173",
-          img: AI,
-        },
-        {
-          title: "Visualizar tendencias bursátiles",
-          desc: "Explora tendencias financieras y genera gráficos interactivos.",
-          category: "Top Notch",
-          learnmore: "Aprender más →",
-          redirectUrl: "http://localhost:5173",
-          img: AI,
-        },
-        {
-          title: "Planifica tu día eficientemente",
-          desc: "La IA de estilo de vida crea rutinas diarias optimizadas y recordatorios.",
-          category: "Education",
-          learnmore: "Aprender más →",
-          redirectUrl: "http://localhost:5173",
-          img: AI,
-        },
-        {
-          title: "Investigar con agentes de IA",
-          desc: "Haz preguntas complejas y recibe respuestas con citas y resúmenes.",
-          category: "Web 3",
-          learnmore: "Aprender más →",
-          redirectUrl: "http://localhost:5173",
-          img: AI,
-        },
-        {
-          title: "Incorporar nuevos empleados",
-          desc: "Los agentes de RRHH pueden generar planes de incorporación, listas de verificación y documentos internos.",
-          category: "Social Media",
-          learnmore: "Aprender más →",
-          redirectUrl: "http://localhost:5173",
-          img: AI,
-        },
-      ],
-    },
-    blogs: {
-      title: "Lee nuestras últimas publicaciones del blog",
-      subtitle:
-        "Ideas, historias y actualizaciones del equipo y la comunidad de Remo.",
-      exploreButton: "Explorar más blogs →",
-      items: [
-        {
-          title: "Cómo Remo está revolucionando la IA personal",
-          desc: "Una inmersión profunda en la tecnología y filosofía detrás de Remo.",
-          learnmore: "Aprender más →",
-          img: blog1,
-        },
-        {
-          title: "10 casos de uso sorprendentes para Remo",
-          desc: "Descubre formas únicas en que las personas usan Remo a diario.",
-          learnmore: "Aprender más →",
-          img: blog1,
-        },
-        {
-          title: "El futuro de los asistentes de IA",
-          desc: "Tendencias e innovaciones que están moldeando la nueva generación de asistentes inteligentes.",
-          learnmore: "Aprender más →",
-          img: blog1,
-        },
-        {
-          title: "Integra Remo con tus herramientas favoritas",
-          desc: "Guías paso a paso para conectar Remo con herramientas de productividad.",
-          learnmore: "Aprender más →",
-          img: blog1,
-        },
-        {
-          title: "Bonus: Detrás de escena en Remo",
-          desc: "Conoce cómo el equipo de Remo construye y prueba nuevas funciones.",
-          learnmore: "Aprender más →",
-          img: blog1,
-        },
-        {
-          title: "Integra Remo con tus herramientas favoritas",
-          desc: "Guías paso a paso para conectar Remo con herramientas de productividad.",
-          learnmore: "Aprender más →",
-          img: blog1,
-        },
-      ],
-    },
-    footer: {
-      logo,
-      address: [
-        "405 E Lamburnum Ave ste 3",
-        "Richmond, VA 23222",
-        "Estados Unidos",
-      ],
-      phone: "+1 901-219-1273",
-      email: "support@remo.com",
-      quickLinks: [
-        "Precios",
-        "Recursos",
-        "Sobre nosotros",
-        "Preguntas frecuentes",
-        "Contáctanos",
-      ],
-      social: ["Facebook", "Instagram", "LinkedIn", "Twitter", "Youtube"],
-      legal: [
-        "Términos de servicio",
-        "Política de privacidad",
-        "Política de cookies",
-      ],
-      copyright: "© 2025 Remo AI. Todos los derechos reservados.",
-      labels: {
-        quickLinks: "Enlaces rápidos",
-        social: "Redes sociales",
-        legal: "Legal",
-        phone: "Teléfono",
-        email: "Correo electrónico",
-      },
-    },
+    
   },
 };
 

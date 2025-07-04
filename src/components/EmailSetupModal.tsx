@@ -151,8 +151,8 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+    <div className="fixed inset-0 bg-black/10 backdrop-blur-sm bg-opacity-50 flex justify-center z-50 overflow-y-auto py-12 ">
+      <div className="bg-white dark:bg-gray-800 rounded-lg w-full max-w-md sm:max-w-lg mx-4 p-4 sm:p-8 overflow-x-auto mt-auto mb-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center space-x-3">

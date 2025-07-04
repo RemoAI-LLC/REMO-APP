@@ -97,8 +97,8 @@ const Pricing: React.FC = () => {
   const [billing, setBilling] = useState<BillingOption>("monthly");
 
   return (
-    <div className="min-h-screen bg-white text-gray-900 py-20 px-4">
-      <div className="max-w-6xl mx-auto text-center">
+    <div className="min-h-screen bg-bg text-gray-900 py-20 px-4">
+      <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-4xl font-bold mb-4">Plans and Pricing</h2>
         <p className="text-gray-500 mb-8">
           Save more with annual billing — up to 10% discount included.

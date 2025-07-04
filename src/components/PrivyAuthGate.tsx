@@ -1,6 +1,7 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // ✅ Import navigate + location
+import { useAccess } from "../context/AccessContext";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
@@ -23,6 +24,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   const warmupSent = useRef(false);
   const navigate = useNavigate();
   const location = useLocation();
+  const { setHasAccess } = useAccess();
 
   const userId = user?.id;
   const userEmail = user?.email?.address;
@@ -70,6 +72,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
         .then((res) => res.json())
         .then((data) => {
           setCheckingAccess(false);
+          setHasAccess(!!data.hasAccess);
           if (data.hasAccess) {
             navigate("/home", { replace: true });
           } else {
@@ -78,6 +81,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
         })
         .catch(() => {
           setCheckingAccess(false);
+          setHasAccess(false);
           // fallback: show pricing
           navigate("/pricing", { replace: true });
         });
@@ -92,7 +96,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
         }),
       }).catch(() => {});
     }
-  }, [authenticated, ready, userId, userEmail, navigate, location.pathname]);
+  }, [authenticated, ready, userId, userEmail, navigate, location.pathname, setHasAccess]);
 
   if (!ready || checkingAccess)
     return (

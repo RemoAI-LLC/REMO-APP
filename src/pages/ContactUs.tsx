@@ -20,7 +20,7 @@ const ContactUsModal: React.FC<ContactUsModalProps> = ({ onClose }) => {
   return (
     <div className="fixed inset-0 bg-black/10 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity duration-300">
       <div
-        className={`bg-[#1c1c1c] text-white rounded-md shadow-lg p-6 w-full max-w-xl relative transform transition-all duration-300 ${
+        className={`bg-bg text-text rounded-md shadow-lg p-6 w-full max-w-2xl relative transform transition-all duration-300 ${
           visible ? "opacity-100 scale-100" : "opacity-0 scale-95"
         }`}
       >
@@ -36,7 +36,7 @@ const ContactUsModal: React.FC<ContactUsModalProps> = ({ onClose }) => {
           general assistance, please email
           <a
             href="mailto:hello@hireremo.com"
-            className="text-white underline ml-1"
+            className="text-text underline ml-1"
           >
             hello@hireremo.com
           </a>

@@ -9,10 +9,6 @@ import {
   getEmailSuggestions,
 } from "../utils/emailIntentDetection";
 import ScheduleMeetingModal from "../components/ScheduleMeetingModal";
-import { getUserImage, getUserInitial } from "../utils/userProfileUtils";
-import logo from "../assets/MainLogo.png";
-import { Link } from "react-router-dom";
-import { RotateWords } from "../components/RotateWords";
 import ScheduleMeetingForm from "../components/ScheduleMeetingForm";
 
 const placeholderText = "Hi I'm Remo! Your Personal AI Assistant";
@@ -20,7 +16,7 @@ const placeholderText = "Hi I'm Remo! Your Personal AI Assistant";
 // Backend API configuration
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://remo-server.onrender.com" ||
+  //"https://remo-server.onrender.com" ||
   "http://localhost:8000";
 
 // Type declarations for Web Speech API
@@ -94,15 +90,6 @@ const Home: React.FC = () => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentTranscriptRef = useRef<string>("");
-  const [meetingForm, setMeetingForm] = useState({
-    attendees: "",
-    subject: "",
-    date: "",
-    time: "",
-    duration: "60",
-    location: "",
-    description: "",
-  });
 
   // Get user ID from Privy
   const userId = user?.id;
@@ -550,167 +537,21 @@ const Home: React.FC = () => {
     checkEmailAuthStatus(); // Re-check status after modal closes
   };
 
-  const handleMeetingFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setMeetingForm({ ...meetingForm, [e.target.name]: e.target.value });
-  };
-
-  const handleMeetingFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowMeetingForm(false);
-
-    // Format meeting details as a structured message
-    const detailsMsg = `Schedule a meeting with ${meetingForm.attendees} on ${meetingForm.date} at ${meetingForm.time} about ${meetingForm.subject}. Duration: ${meetingForm.duration} minutes. Location: ${meetingForm.location}. Description: ${meetingForm.description}`;
-
-    // Add user message to chat
-    const userMessage: Message = {
-      role: "user",
-      content: detailsMsg,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: detailsMsg,
-          conversation_history: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          user_id: userId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get response from Remo");
-      }
-
-      const data = await response.json();
-
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: data.response,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Error scheduling meeting:", error);
-
-      // Check if the error is due to missing Google authentication
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      const isAuthError =
-        errorMessage.includes("not authenticated") ||
-        errorMessage.includes("OAuth");
-
-      let errorContent =
-        "Sorry, I encountered an error while scheduling your meeting. Please try again.";
-
-      if (isAuthError) {
-        errorContent = `❌ **Google Calendar not connected!**\n\nTo schedule meetings with Google Calendar, you need to connect your Gmail account first.\n\nGo to the **Integrations** page to connect your Gmail account.`;
-      }
-
-      const errorMessageObj: Message = {
-        role: "assistant",
-        content: errorContent,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessageObj]);
-    } finally {
-      setIsLoading(false);
-      // Reset form
-      setMeetingForm({
-        attendees: "",
-        subject: "",
-        date: "",
-        time: "",
-        duration: "60",
-        location: "",
-        description: "",
-      });
-    }
-  };
-
-  const InputBox = (
-    <form
-      onSubmit={handleSendMessage}
-      className="w-full max-w-4xl mx-auto px-4 py-8"
-    >
-      <div className="relative bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl shadow-sm px-4 pt-2 pb-12">
-        {/* Textarea */}
-        <textarea
-          className="w-full resize-none bg-transparent text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none max-h-[14rem] min-h-[2.5rem] overflow-y-auto"
-          placeholder={isListening ? "Listening..." : placeholderText}
-          value={isListening ? transcript : inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          rows={2}
-          disabled={isLoading || isRecording}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              handleSendMessage(e);
-            }
-          }}
-        />
-
-        {/* Icons in bottom-right corner */}
-        <div className="absolute bottom-2 right-3 flex items-center gap-2">
-          {/* Mic button */}
-          <button
-            type="button"
-            onClick={toggleRecording}
-            disabled={isLoading}
-            className={`p-2 rounded-full transition ${
-              isRecording
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
-            } text-white`}
-            title={isRecording ? "Stop recording" : "Start voice recording"}
-          >
-            {isRecording ? (
-              <FaMicrophoneSlash size={16} />
-            ) : (
-              <FaMicrophone size={16} />
-            )}
-          </button>
-
-          {/* Send button */}
-          <button
-            type="submit"
-            disabled={isLoading || !inputText.trim()}
-            className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <IoIosSend size={16} />
-          </button>
-        </div>
-      </div>
-    </form>
-  );
-
   return (
-    <div className="flex flex-col h-full bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center text-gray-500 dark:text-gray-400">
-            <Link to="/" className="mb-4">
-              <img src={logo} alt="Logo" className="h-30 w-auto rounded-full" />
-            </Link>
-            <h2 className="text-2xl font-semibold mb-2">Welcome to Remo AI!</h2>
-            <p className="text-lg mb-2">I'm your personal AI assistant.</p>
-            <RotateWords
-              text="I can help you with:"
-              words={["reminders", "tasks", "shopping", "notes", "ideas"]}
-            />
-            {InputBox}
+          <div className="text-center text-gray-500 dark:text-gray-400 mt-20">
+            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FaRobot className="text-blue-500 text-2xl" />
+            </div>
+            <h2 className="text-xl font-semibold mb-2">Welcome to Remo!</h2>
+            <p className="text-sm max-w-md mx-auto">
+              I'm your personal AI assistant. I can help you with reminders,
+              tasks, emails, and much more. Start a conversation by typing or
+              using voice input!
+            </p>
           </div>
         ) : (
           <>
@@ -737,23 +578,9 @@ const Home: React.FC = () => {
                     }`}
                   >
                     {message.role === "user" ? (
-                      getUserImage(user) ? (
-                        <img
-                          src={getUserImage(user)!}
-                          alt="User"
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <div className="w-full h-full rounded-full flex items-center justify-center bg-blue-500 text-white font-semibold text-sm uppercase">
-                          {getUserInitial(user)}
-                        </div>
-                      )
+                      <FaUser className="text-white text-sm" />
                     ) : (
-                      <img
-                        src={logo}
-                        alt="Remo AI"
-                        className="w-full h-full object-cover "
-                      />
+                      <FaRobot className="text-gray-600 dark:text-gray-300 text-sm" />
                     )}
                   </div>
 
@@ -880,114 +707,6 @@ const Home: React.FC = () => {
           </div>
         )}
 
-        {showMeetingForm && (
-          <div className="flex justify-start">
-            <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-6 py-4 rounded-lg max-w-md w-full shadow-lg">
-              <form onSubmit={handleMeetingFormSubmit} className="space-y-3">
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Attendees (emails, comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    name="attendees"
-                    value={meetingForm.attendees}
-                    onChange={handleMeetingFormChange}
-                    className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Subject
-                  </label>
-                  <input
-                    type="text"
-                    name="subject"
-                    value={meetingForm.subject}
-                    onChange={handleMeetingFormChange}
-                    className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    required
-                  />
-                </div>
-                <div className="flex space-x-2">
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Date
-                    </label>
-                    <input
-                      type="date"
-                      name="date"
-                      value={meetingForm.date}
-                      onChange={handleMeetingFormChange}
-                      className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
-                      required
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                      Time
-                    </label>
-                    <input
-                      type="time"
-                      name="time"
-                      value={meetingForm.time}
-                      onChange={handleMeetingFormChange}
-                      className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Duration (minutes)
-                  </label>
-                  <input
-                    type="number"
-                    name="duration"
-                    value={meetingForm.duration}
-                    onChange={handleMeetingFormChange}
-                    className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    required
-                    min="1"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={meetingForm.location}
-                    onChange={handleMeetingFormChange}
-                    className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
-                    Description
-                  </label>
-                  <textarea
-                    name="description"
-                    value={meetingForm.description}
-                    onChange={handleMeetingFormChange}
-                    className="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
-                    rows={2}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg mt-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Scheduling..." : "Schedule Meeting"}
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
         <div ref={messagesEndRef} />
       </div>
 
@@ -1008,7 +727,54 @@ const Home: React.FC = () => {
       />
 
       {/* Input Area */}
-      {messages.length > 0 && <div className="py-4">{InputBox}</div>}
+      <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <form onSubmit={handleSendMessage} className="flex items-end gap-4">
+          <div className="flex-1 rounded-2xl border border-gray-200 dark:border-gray-600 shadow-sm px-6 py-4 bg-gray-50 dark:bg-gray-700 min-h-[60px]">
+            <textarea
+              className="w-full resize-none border-none outline-none bg-transparent text-lg p-0 min-h-[32px] max-h-40 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              placeholder={isListening ? "Listening..." : placeholderText}
+              value={isListening ? transcript : inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              rows={1}
+              disabled={isLoading || isRecording}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(e);
+                }
+              }}
+            />
+          </div>
+
+          {/* Voice Recording Button */}
+          <button
+            type="button"
+            onClick={toggleRecording}
+            disabled={isLoading}
+            className={`p-3 rounded-full transition flex items-center justify-center ${
+              isRecording
+                ? "bg-red-500 text-white hover:bg-red-600"
+                : "bg-gray-500 text-white hover:bg-gray-600"
+            } disabled:opacity-50 disabled:cursor-not-allowed`}
+            title={isRecording ? "Stop recording" : "Start voice recording"}
+          >
+            {isRecording ? (
+              <FaMicrophoneSlash size={20} />
+            ) : (
+              <FaMicrophone size={20} />
+            )}
+          </button>
+
+          {/* Send Button */}
+          <button
+            type="submit"
+            disabled={isLoading || !inputText.trim()}
+            className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          >
+            <IoIosSend size={20} />
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

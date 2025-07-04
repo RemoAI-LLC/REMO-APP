@@ -1,14 +1,21 @@
 import React from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Home from "../pages/Home";
 import SmartApply from "../pages/SmartApply";
 import Usecases from "../pages/Usecases";
 import Integrations from "../pages/Integrations";
 import Pricing from "../pages/Pricing";
 import PaymentSuccess from "../pages/PaymentSuccess";
+import { useAccess } from "../context/AccessContext";
 // import UsecasePage from '../pages/UsecasePage';
 
 const AppRoutes: React.FC = () => {
+  const { hasAccess } = useAccess();
+  const location = useLocation();
+  const allowedWithoutAccess = ["/pricing", "/payment-success", "/logout"];
+  if (!hasAccess && !allowedWithoutAccess.includes(location.pathname)) {
+    return <Navigate to="/pricing" replace />;
+  }
   return (
     <Routes>
       <Route path="/" element={<Home />} />

@@ -9,6 +9,7 @@ import { TbFileInvoice } from "react-icons/tb";
 import { CiSettings } from "react-icons/ci";
 import { CiMail } from "react-icons/ci";
 import { GrDocumentText } from "react-icons/gr";
+import ContactUsModal from "../pages/ContactUs";
 
 interface SidebarProps {
   onExpandChange: (expanded: boolean) => void;
@@ -28,6 +29,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
   };
 
   const isSidebarExpanded = hovering;
+  const [isContactModalOpen, setContactModalOpen] = useState(false);
 
   return (
     <div
@@ -145,9 +147,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
           </span>
         </a>
 
-        <Link
-          to="/contact"
-          className="flex items-center px-4 py-2 rounded hover:bg-[#dddddd] transition-all duration-300"
+        <button
+          onClick={() => setContactModalOpen(true)}
+          className="w-full flex items-center px-4 py-2 rounded hover:bg-[#dddddd] transition-all duration-300"
         >
           <div className="min-w-[20px] flex justify-center">
             <CiMail size={20} />
@@ -159,7 +161,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange }) => {
           >
             Contact Us
           </span>
-        </Link>
+        </button>
+
+        {isContactModalOpen && (
+          <ContactUsModal onClose={() => setContactModalOpen(false)} />
+        )}
       </nav>
     </div>
   );

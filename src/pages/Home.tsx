@@ -13,6 +13,7 @@ import { getUserImage, getUserInitial } from "../utils/userProfileUtils";
 import logo from "../assets/MainLogo.png";
 import { Link } from "react-router-dom";
 import { RotateWords } from "../components/RotateWords";
+import ScheduleMeetingForm from "../components/ScheduleMeetingForm";
 
 const placeholderText = "Hi I'm Remo! Your Personal AI Assistant";
 
@@ -66,6 +67,16 @@ function isMeetingDetailsPrompt(message: string) {
   );
 }
 
+// Add a helper to detect meeting scheduling intent
+function isScheduleMeetingIntent(text: string) {
+  const lower = text.toLowerCase();
+  return (
+    lower.includes("schedule a meet") ||
+    lower.includes("schedule a meeting") ||
+    lower.includes("set up a meeting")
+  );
+}
+
 const Home: React.FC = () => {
   const { user } = usePrivy();
   const [inputText, setInputText] = useState("");
@@ -76,8 +87,9 @@ const Home: React.FC = () => {
   const [transcript, setTranscript] = useState("");
   const [showEmailSetup, setShowEmailSetup] = useState(false);
   const [emailConnected, setEmailConnected] = useState(false);
-  const [showScheduleMeeting, setShowScheduleMeeting] = useState(false);
   const [showMeetingForm, setShowMeetingForm] = useState(false);
+  const [pendingMeetingForm, setPendingMeetingForm] = useState(false);
+  const [googleEmail, setGoogleEmail] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -95,15 +107,17 @@ const Home: React.FC = () => {
   // Get user ID from Privy
   const userId = user?.id;
 
-  // Function to check email auth status
+  // Function to check email auth status and fetch google email
   const checkEmailAuthStatus = async () => {
     if (!userId) return;
     try {
       const response = await fetch(`${API_BASE_URL}/auth/status/${userId}`);
       const data = await response.json();
       setEmailConnected(!!data.authenticated);
+      setGoogleEmail(data.google_email || null);
     } catch (err) {
       setEmailConnected(false);
+      setGoogleEmail(null);
     }
   };
 
@@ -291,6 +305,21 @@ const Home: React.FC = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputText.trim() || isLoading) return;
+
+    // If user intent is to schedule a meeting, show the form immediately
+    if (isScheduleMeetingIntent(inputText)) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "user",
+          content: inputText,
+          timestamp: new Date(),
+        },
+      ]);
+      setPendingMeetingForm(true);
+      setInputText("");
+      return;
+    }
 
     // Check for email intent
     const emailIntent = detectEmailIntent(inputText);
@@ -938,8 +967,8 @@ const Home: React.FC = () => {
       )}
 
       <ScheduleMeetingModal
-        isOpen={showScheduleMeeting}
-        onClose={() => setShowScheduleMeeting(false)}
+        isOpen={showMeetingForm}
+        onClose={() => setShowMeetingForm(false)}
         userId={userId || ""}
       />
 

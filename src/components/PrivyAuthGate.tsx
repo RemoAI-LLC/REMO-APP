@@ -4,14 +4,14 @@ import { useNavigate, useLocation } from "react-router-dom"; // ✅ Import navig
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://remo-server.onrender.com" ||
-  "http://localhost:8000";
+  "https://remo-server.onrender.com" || // Render production
+  "http://localhost:8000"; // local
 
 const STRIPE_BACKEND_URL =
   import.meta.env.VITE_STRIPE_BACKEND_URL ||
   (window.location.hostname === "localhost"
-    ? "http://localhost:3001"
-    : "https://stripe-backend-4ian.onrender.com"); // Use Render in production
+    ? "http://localhost:3001" // local
+    : "https://stripe-backend-4ian.onrender.com"); // Render production
 
 const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   children,

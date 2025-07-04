@@ -1,13 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoIosSend } from "react-icons/io";
-import { FaUser, FaRobot } from "react-icons/fa";
+import { FaRobot } from "react-icons/fa";
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { usePrivy } from "@privy-io/react-auth";
 import EmailSetupModal from "../components/EmailSetupModal";
-import {
-  detectEmailIntent,
-  getEmailSuggestions,
-} from "../utils/emailIntentDetection";
+import { detectEmailIntent } from "../utils/emailIntentDetection";
 import ScheduleMeetingModal from "../components/ScheduleMeetingModal";
 import { getUserImage, getUserInitial } from "../utils/userProfileUtils";
 import logo from "../assets/MainLogo.png";
@@ -124,7 +121,6 @@ const Home: React.FC = () => {
   // Check email status on mount and when userId changes
   useEffect(() => {
     checkEmailAuthStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   // Initialize speech recognition
@@ -526,11 +522,6 @@ const Home: React.FC = () => {
 
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
-
-  // Email setup handlers
-  const handleEmailSetupClick = () => {
-    setShowEmailSetup(true);
   };
 
   const handleEmailSetupSuccess = () => {

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import { useAccess } from "../context/AccessContext";
 
 type PlanTier = "Basic" | "Premium";
 
@@ -9,13 +9,27 @@ interface Plan {
 }
 
 const UpgradePlan: React.FC = () => {
-  // This should come from user context or API
-  const currentPlan: Plan = {
-    tier: "Premium", // Change to "Basic" or "Premium"
-    billing: "Monthly", // Change to "Monthly" or "Yearly"
+  const [showYearly, setShowYearly] = useState(false);
+  const { subscription } = useAccess();
+
+  // Get current plan from subscription data
+  const getCurrentPlan = (): Plan | null => {
+    if (!subscription) return null;
+    
+    const planType = subscription.type;
+    const isYearly = planType.includes('Yearly');
+    const isBasic = planType.includes('Basic');
+    
+    return {
+      tier: isBasic ? "Basic" : "Premium",
+      billing: isYearly ? "Yearly" : "Monthly"
+    };
   };
 
-  const [showYearly, setShowYearly] = useState(false);
+  const currentPlan = getCurrentPlan() || {
+    tier: "Basic" as PlanTier,
+    billing: "Monthly" as "Monthly" | "Yearly",
+  };
 
   const plans = [
     {
@@ -162,12 +176,24 @@ const UpgradePlan: React.FC = () => {
   return (
     <div className="min-h-screen bg-bg dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-20 px-4">
       <div className="max-w-6xl mx-auto text-center">
-       
         
+         
         <h2 className="text-4xl font-bold mb-4">Upgrade Your Plan</h2>
         <p className="text-gray-500 dark:text-gray-400 mb-8">
           Unlock more features and get the most out of Remo AI by upgrading your plan.
         </p>
+
+        {/* Current Plan Status */}
+        {subscription && (
+          <div className="mb-8 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg max-w-md mx-auto">
+            <div className="text-sm text-blue-800 dark:text-blue-200">
+              <strong>Current Plan:</strong> {subscription.type}
+            </div>
+            <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+              Status: {subscription.status}
+            </div>
+          </div>
+        )}
 
         {/* Billing Toggle */}
         <div className="flex justify-center mb-8">

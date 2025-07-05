@@ -24,7 +24,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   const warmupSent = useRef(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { setHasAccess } = useAccess();
+  const { setHasAccess, setSubscription } = useAccess();
 
   const userId = user?.id;
   const userEmail = user?.email?.address;
@@ -73,6 +73,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
         .then((data) => {
           setCheckingAccess(false);
           setHasAccess(!!data.hasAccess);
+          setSubscription(data); // Store the full subscription data
           if (data.hasAccess) {
             navigate("/home", { replace: true });
           } else {
@@ -82,6 +83,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
         .catch(() => {
           setCheckingAccess(false);
           setHasAccess(false);
+          setSubscription(null);
           // fallback: show pricing
           navigate("/pricing", { replace: true });
         });
@@ -96,7 +98,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
         }),
       }).catch(() => {});
     }
-  }, [authenticated, ready, userId, userEmail, navigate, location.pathname, setHasAccess]);
+  }, [authenticated, ready, userId, userEmail, navigate, location.pathname, setHasAccess, setSubscription]);
 
   if (!ready || checkingAccess)
     return (
@@ -107,30 +109,25 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
 
   if (loginError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-        <p className="text-red-600">{loginError}</p>
-        <button
-          onClick={() => {
-            setLoginError(null);
-            loginAttempted.current = false;
-          }}
-          className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow hover:bg-blue-600 ml-4"
-        >
-          Retry Login
-        </button>
+      <div className="h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-4">Login failed: {loginError}</p>
+          <button
+            onClick={() => {
+              setLoginError(null);
+              loginAttempted.current = false;
+              login();
+            }}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            Try Again
+          </button>
+        </div>
       </div>
     );
   }
 
-  if (authenticated) {
-    return <>{children}</>;
-  }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <p>Logging in...</p>
-    </div>
-  );
+  return <>{children}</>;
 };
 
 export default PrivyAuthGate;

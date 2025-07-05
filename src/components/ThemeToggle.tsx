@@ -36,18 +36,25 @@ const ThemeToggle: React.FC = () => {
   }, []);
 
   return (
-    <button
-      onClick={() => setDarkMode((prev) => !prev)}
-      className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:ring-2 ring-gray-300 transition"
-      title="Toggle Theme"
-      aria-label="Toggle theme"
-    >
-      {darkMode ? (
-        <SunIcon className="w-5 h-5 text-yellow-400" />
-      ) : (
-        <MoonIcon className="w-5 h-5 text-gray-600" />
-      )}
-    </button>
+    <div className="relative group">
+      <button
+        onClick={() => setDarkMode((prev) => !prev)}
+        className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full hover:ring-2 ring-gray-300 transition"
+        title="Toggle Theme"
+        aria-label="Toggle theme"
+      >
+        {darkMode ? (
+          <SunIcon className="w-5 h-5 text-yellow-400" />
+        ) : (
+          <MoonIcon className="w-5 h-5 text-gray-600" />
+        )}
+      </button>
+      {/* Tooltip */}
+      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+        {darkMode ? "Switch to light mode" : "Switch to dark mode"}
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+      </div>
+    </div>
   );
 };
 

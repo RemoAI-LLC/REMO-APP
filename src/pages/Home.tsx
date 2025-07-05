@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoIosSend } from "react-icons/io";
 import { IoCopy, IoCheckmark, IoAttach, IoImage, IoVideocam, IoPlayCircle } from "react-icons/io5";
+import { BiDotsHorizontalRounded } from "react-icons/bi";
 
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { usePrivy } from "@privy-io/react-auth";
@@ -164,6 +165,7 @@ const Home: React.FC = () => {
   const currentTranscriptRef = useRef<string>("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const [meetingForm, setMeetingForm] = useState({
     attendees: "",
     subject: "",
@@ -363,6 +365,18 @@ const Home: React.FC = () => {
         clearTimeout(voiceTimeoutRef.current);
       }
     };
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setSelectedCreationType(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -796,6 +810,7 @@ const Home: React.FC = () => {
             selectedCreationType === 'image' ? "Describe the image you want to create..." :
             selectedCreationType === 'video' ? "Describe the video you want to create..." :
             selectedCreationType === 'reel' ? "Describe the reel you want to create..." :
+            selectedCreationType === 'dropdown' ? placeholderText :
             isListening ? "Listening..." : placeholderText
           }
           value={isListening ? transcript : inputText}
@@ -820,115 +835,189 @@ const Home: React.FC = () => {
           accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
         />
 
-        {/* Icons in bottom-left corner */}
-        <div className="absolute bottom-4 left-4 flex items-center gap-2">
-          {/* Create Image */}
-          <div className="relative group">
-            <button
-              type="button"
-              onClick={() => handleCreationOption('image')}
-              disabled={isLoading}
-              className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
-                selectedCreationType === 'image'
-                  ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white"
-                  : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
-              }`}
-              title="Create an image"
-            >
-              <IoImage size={18} />
-            </button>
-            {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
-              Create an image
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+        {/* Icons in bottom-left corner - Create options */}
+        <div className="absolute bottom-4 left-4 flex items-center gap-3">
+          {/* Create dropdown for mobile */}
+          <div className="relative lg:hidden" ref={dropdownRef}>
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={() => setSelectedCreationType(selectedCreationType === 'dropdown' ? null : 'dropdown')}
+                disabled={isLoading}
+                className="p-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
+                title="Create content"
+              >
+                <BiDotsHorizontalRounded size={18} />
+              </button>
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                Create content
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
             </div>
+            
+            {/* Dropdown menu */}
+            {selectedCreationType === 'dropdown' && (
+              <div className="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 min-w-[150px]">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCreationType('image')}
+                  className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 rounded-t-lg"
+                >
+                  <IoImage size={14} />
+                  Create Image
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCreationType('video')}
+                  className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                >
+                  <IoVideocam size={14} />
+                  Create Video
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCreationType('reel')}
+                  className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 rounded-b-lg"
+                >
+                  <IoPlayCircle size={14} />
+                  Create Reel
+                </button>
+              </div>
+            )}
           </div>
 
-          {/* Create Video */}
-          <div className="relative group">
-            <button
-              type="button"
-              onClick={() => handleCreationOption('video')}
-              disabled={isLoading}
-              className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
-                selectedCreationType === 'video'
-                  ? "bg-gradient-to-r from-blue-500 to-cyan-600 text-white"
-                  : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
-              }`}
-              title="Create a video"
-            >
-              <IoVideocam size={18} />
-            </button>
-            {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
-              Create a video
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+          {/* Individual Create buttons for desktop */}
+          <div className="hidden lg:flex items-center gap-3">
+            {/* Create Image button */}
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={() => setSelectedCreationType(selectedCreationType === 'image' ? null : 'image')}
+                disabled={isLoading}
+                className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
+                  selectedCreationType === 'image'
+                    ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white"
+                    : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
+                }`}
+                title="Create image"
+              >
+                <IoImage size={18} />
+              </button>
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                Create image
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
             </div>
-          </div>
 
-          {/* Create Reel */}
-          <div className="relative group">
-            <button
-              type="button"
-              onClick={() => handleCreationOption('reel')}
-              disabled={isLoading}
-              className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
-                selectedCreationType === 'reel'
-                  ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
-                  : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
-              }`}
-              title="Create a reel"
-            >
-              <IoPlayCircle size={18} />
-            </button>
-            {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
-              Create a reel
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            {/* Create Video button */}
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={() => setSelectedCreationType(selectedCreationType === 'video' ? null : 'video')}
+                disabled={isLoading}
+                className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
+                  selectedCreationType === 'video'
+                    ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white"
+                    : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
+                }`}
+                title="Create video"
+              >
+                <IoVideocam size={18} />
+              </button>
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                Create video
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
+            </div>
+
+            {/* Create Reel button */}
+            <div className="relative group">
+              <button
+                type="button"
+                onClick={() => setSelectedCreationType(selectedCreationType === 'reel' ? null : 'reel')}
+                disabled={isLoading}
+                className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
+                  selectedCreationType === 'reel'
+                    ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white"
+                    : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
+                }`}
+                title="Create reel"
+              >
+                <IoPlayCircle size={18} />
+              </button>
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                Create reel
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Icons in bottom-right corner */}
+        {/* Icons in bottom-right corner - Action buttons */}
         <div className="absolute bottom-4 right-4 flex items-center gap-3">
           {/* File attachment button */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isLoading}
-            className="p-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
-            title="Attach file"
-          >
-            <IoAttach size={18} />
-          </button>
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+              className="p-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
+              title="Attach file"
+            >
+              <IoAttach size={18} />
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+              Attach file
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
 
           {/* Mic button */}
-          <button
-            type="button"
-            onClick={toggleRecording}
-            disabled={isLoading}
-            className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
-              isRecording
-                ? "bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 animate-pulse"
-                : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500"
-            } text-gray-700 dark:text-gray-300`}
-            title={isRecording ? "Stop recording" : "Start voice recording"}
-          >
-            {isRecording ? (
-              <FaMicrophoneSlash size={18} className="text-white" />
-            ) : (
-              <FaMicrophone size={18} />
-            )}
-          </button>
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={toggleRecording}
+              disabled={isLoading}
+              className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
+                isRecording
+                  ? "bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 animate-pulse"
+                  : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500"
+              } text-gray-700 dark:text-gray-300`}
+              title={isRecording ? "Stop recording" : "Start voice recording"}
+            >
+              {isRecording ? (
+                <FaMicrophoneSlash size={18} className="text-white" />
+              ) : (
+                <FaMicrophone size={18} />
+              )}
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+              {isRecording ? "Stop recording" : "Start voice recording"}
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
 
           {/* Send button */}
-          <button
-            type="submit"
-            disabled={isLoading || (!inputText.trim() && !selectedFile)}
-            className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-md"
-          >
-            <IoIosSend size={18} />
-          </button>
+          <div className="relative group">
+            <button
+              type="submit"
+              disabled={isLoading || (!inputText.trim() && !selectedFile)}
+              className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-md"
+            >
+              <IoIosSend size={18} />
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+              Send message
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
         </div>
       </div>
     </form>

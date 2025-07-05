@@ -6,28 +6,42 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
     <div className="w-full h-screen bg-[#fafafa] dark:bg-gray-900">
-      {/* Sidebar: overlay on mobile, always visible on desktop */}
+      {/* Fixed Topbar */}
+      <Topbar 
+        onMenuClick={() => setSidebarOpen(true)} 
+        sidebarExpanded={sidebarExpanded}
+      />
+      
+      {/* Sidebar: controlled by toggle on all screen sizes */}
       <Sidebar
         open={sidebarOpen}
         onOpen={() => setSidebarOpen(true)}
-        onClose={() => setSidebarOpen(false)}
+        onClose={toggleSidebar}
         onExpandChange={setSidebarExpanded}
       />
-      {/* Overlay for mobile sidebar */}
+      
+      {/* Overlay for sidebar when open */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
+      
+      {/* Main content area */}
       <div
-        className={`transition-all duration-300 lg:ml-16 ${
-          sidebarExpanded ? "lg:ml-64" : ""
-        }`}
+        className={`
+          pt-16 transition-all duration-300 
+          ml-0 lg:ml-16
+          ${sidebarExpanded ? "lg:ml-64" : "lg:ml-16"}
+        `}
       >
-        <Topbar onMenuClick={() => setSidebarOpen(true)} />
         <main className="overflow-y-auto h-[calc(100vh-4rem)]">{children}</main>
       </div>
     </div>

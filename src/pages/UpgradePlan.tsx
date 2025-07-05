@@ -172,29 +172,43 @@ const UpgradePlan: React.FC = () => {
         {/* Billing Toggle */}
         <div className="flex justify-center mb-8">
           <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-1 flex">
-            <button
-              onClick={() => setShowYearly(false)}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
-                !showYearly
-                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-              }`}
-            >
-              Monthly
-            </button>
-            <button
-              onClick={() => setShowYearly(true)}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
-                showYearly
-                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
-                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
-              }`}
-            >
-              Yearly
-              <span className="ml-1 text-xs bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">
-                Save 10%
-              </span>
-            </button>
+            <div className="relative group">
+              <button
+                onClick={() => setShowYearly(false)}
+                className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+                  !showYearly
+                    ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
+              >
+                Monthly
+              </button>
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                Monthly billing
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
+            </div>
+            <div className="relative group">
+              <button
+                onClick={() => setShowYearly(true)}
+                className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+                  showYearly
+                    ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                }`}
+              >
+                Yearly
+                <span className="ml-1 text-xs bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">
+                  Save 10%
+                </span>
+              </button>
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                Yearly billing (Save 10%)
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              </div>
+            </div>
           </div>
         </div>
 

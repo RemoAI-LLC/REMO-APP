@@ -181,12 +181,19 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-          >
-            <FaTimes size={20} />
-          </button>
+          <div className="relative group">
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            >
+              <FaTimes size={20} />
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+              Close setup
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
         </div>
 
         {/* Content */}
@@ -267,23 +274,30 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
                 </ul>
               </div>
 
-              <button
-                onClick={initiateOAuth}
-                disabled={isConnecting}
-                className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition"
-              >
-                {isConnecting ? (
-                  <>
-                    <FaSpinner className="animate-spin" />
-                    <span>Connecting...</span>
-                  </>
-                ) : (
-                  <>
-                    <FaGoogle />
-                    <span>Connect with Google</span>
-                  </>
-                )}
-              </button>
+              <div className="relative group">
+                <button
+                  onClick={initiateOAuth}
+                  disabled={isConnecting}
+                  className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition"
+                >
+                  {isConnecting ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      <span>Connecting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <FaGoogle />
+                      <span>Connect with Google</span>
+                    </>
+                  )}
+                </button>
+                {/* Tooltip */}
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+                  Connect your Gmail account
+                  <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                </div>
+              </div>
             </div>
           )}
 

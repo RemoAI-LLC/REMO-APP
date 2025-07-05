@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoIosSend } from "react-icons/io";
-import { IoCopy, IoCheckmark, IoAttach, IoImage, IoVideocam, IoPlayCircle } from "react-icons/io5";
+import {
+  IoCopy,
+  IoCheckmark,
+  IoAttach,
+  IoImage,
+  IoVideocam,
+  IoPlayCircle,
+} from "react-icons/io5";
 import { BiDotsHorizontalRounded } from "react-icons/bi";
 
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
@@ -143,6 +150,49 @@ function isScheduleMeetingIntent(text: string) {
   );
 }
 
+// Helper to extract video URLs from assistant message content
+function extractVideoUrls(content: string): string[] {
+  try {
+    const data = JSON.parse(content);
+    // Check for Gemini/Veo video response structure
+    if (
+      data?.result?.response?.generateVideoResponse?.generatedSamples &&
+      Array.isArray(data.result.response.generateVideoResponse.generatedSamples)
+    ) {
+      return data.result.response.generateVideoResponse.generatedSamples
+        .map((sample: any) => sample.video?.uri)
+        .filter((uri: string) => typeof uri === "string");
+    }
+    // Add more patterns if needed
+  } catch (e) {
+    // Not JSON, ignore
+  }
+  return [];
+}
+
+function extractBedrockMedia(content: string): {
+  imageBase64?: string;
+  videoBase64?: string;
+} {
+  try {
+    const data = JSON.parse(content);
+    if (data?.result?.image_base64) {
+      return { imageBase64: data.result.image_base64 };
+    }
+    if (data?.result?.video_base64) {
+      return { videoBase64: data.result.video_base64 };
+    }
+    // Direct result (non-streaming)
+    if (data?.image_base64) {
+      return { imageBase64: data.image_base64 };
+    }
+    if (data?.video_base64) {
+      return { videoBase64: data.video_base64 };
+    }
+  } catch (e) {}
+  return {};
+}
+
 const Home: React.FC = () => {
   const { user } = usePrivy();
   const [inputText, setInputText] = useState("");
@@ -158,7 +208,9 @@ const Home: React.FC = () => {
   const [googleEmail, setGoogleEmail] = useState<string | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedCreationType, setSelectedCreationType] = useState<string | null>(null);
+  const [selectedCreationType, setSelectedCreationType] = useState<
+    string | null
+  >(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -370,13 +422,16 @@ const Home: React.FC = () => {
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setSelectedCreationType(null);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   useEffect(() => {
@@ -765,11 +820,13 @@ const Home: React.FC = () => {
     const placeholders = {
       image: "Describe the image you want to create...",
       video: "Describe the video you want to create...",
-      reel: "Describe the reel you want to create..."
+      reel: "Describe the reel you want to create...",
     };
     // You can add logic here to handle the creation type
     console.log(`Selected creation type: ${type}`);
   };
+
+  const cleanUrl = (url: string) => url.replace(/["']$/, "");
 
   const InputBox = (
     <form onSubmit={handleSendMessage} className="w-full p-6 max-w-3xl mx-auto">
@@ -807,11 +864,17 @@ const Home: React.FC = () => {
           ref={textareaRef}
           className="w-full resize-none bg-transparent text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none max-h-[14rem] min-h-[2.5rem] overflow-y-auto p-2 font-medium pb-16"
           placeholder={
-            selectedCreationType === 'image' ? "Describe the image you want to create..." :
-            selectedCreationType === 'video' ? "Describe the video you want to create..." :
-            selectedCreationType === 'reel' ? "Describe the reel you want to create..." :
-            selectedCreationType === 'dropdown' ? placeholderText :
-            isListening ? "Listening..." : placeholderText
+            selectedCreationType === "image"
+              ? "Describe the image you want to create..."
+              : selectedCreationType === "video"
+              ? "Describe the video you want to create..."
+              : selectedCreationType === "reel"
+              ? "Describe the reel you want to create..."
+              : selectedCreationType === "dropdown"
+              ? placeholderText
+              : isListening
+              ? "Listening..."
+              : placeholderText
           }
           value={isListening ? transcript : inputText}
           onChange={(e) => setInputText(e.target.value)}
@@ -842,7 +905,11 @@ const Home: React.FC = () => {
             <div className="relative group">
               <button
                 type="button"
-                onClick={() => setSelectedCreationType(selectedCreationType === 'dropdown' ? null : 'dropdown')}
+                onClick={() =>
+                  setSelectedCreationType(
+                    selectedCreationType === "dropdown" ? null : "dropdown"
+                  )
+                }
                 disabled={isLoading}
                 className="p-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
                 title="Create content"
@@ -855,13 +922,13 @@ const Home: React.FC = () => {
                 <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
               </div>
             </div>
-            
+
             {/* Dropdown menu */}
-            {selectedCreationType === 'dropdown' && (
+            {selectedCreationType === "dropdown" && (
               <div className="absolute bottom-full left-0 mb-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 min-w-[150px]">
                 <button
                   type="button"
-                  onClick={() => setSelectedCreationType('image')}
+                  onClick={() => setSelectedCreationType("image")}
                   className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 rounded-t-lg"
                 >
                   <IoImage size={14} />
@@ -869,7 +936,7 @@ const Home: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSelectedCreationType('video')}
+                  onClick={() => setSelectedCreationType("video")}
                   className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
                 >
                   <IoVideocam size={14} />
@@ -877,7 +944,7 @@ const Home: React.FC = () => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setSelectedCreationType('reel')}
+                  onClick={() => setSelectedCreationType("reel")}
                   className="w-full px-3 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2 rounded-b-lg"
                 >
                   <IoPlayCircle size={14} />
@@ -893,10 +960,14 @@ const Home: React.FC = () => {
             <div className="relative group">
               <button
                 type="button"
-                onClick={() => setSelectedCreationType(selectedCreationType === 'image' ? null : 'image')}
+                onClick={() =>
+                  setSelectedCreationType(
+                    selectedCreationType === "image" ? null : "image"
+                  )
+                }
                 disabled={isLoading}
                 className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
-                  selectedCreationType === 'image'
+                  selectedCreationType === "image"
                     ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white"
                     : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
                 }`}
@@ -915,10 +986,14 @@ const Home: React.FC = () => {
             <div className="relative group">
               <button
                 type="button"
-                onClick={() => setSelectedCreationType(selectedCreationType === 'video' ? null : 'video')}
+                onClick={() =>
+                  setSelectedCreationType(
+                    selectedCreationType === "video" ? null : "video"
+                  )
+                }
                 disabled={isLoading}
                 className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
-                  selectedCreationType === 'video'
+                  selectedCreationType === "video"
                     ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white"
                     : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
                 }`}
@@ -937,10 +1012,14 @@ const Home: React.FC = () => {
             <div className="relative group">
               <button
                 type="button"
-                onClick={() => setSelectedCreationType(selectedCreationType === 'reel' ? null : 'reel')}
+                onClick={() =>
+                  setSelectedCreationType(
+                    selectedCreationType === "reel" ? null : "reel"
+                  )
+                }
                 disabled={isLoading}
                 className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
-                  selectedCreationType === 'reel'
+                  selectedCreationType === "reel"
                     ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white"
                     : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
                 }`}
@@ -1112,12 +1191,56 @@ const Home: React.FC = () => {
                       }`}
                     >
                       {message.role === "assistant" ? (
-                        <div
-                          className="text-base leading-relaxed pr-8"
-                          dangerouslySetInnerHTML={{
-                            __html: linkify(formatMarkdown(message.content)),
-                          }}
-                        />
+                        (() => {
+                          // Bedrock base64 image/video support
+                          const { imageBase64, videoBase64 } =
+                            extractBedrockMedia(message.content);
+                          if (imageBase64) {
+                            return (
+                              <div className="pr-8">
+                                <img
+                                  src={`data:image/png;base64,${imageBase64}`}
+                                  alt="Generated"
+                                  style={{
+                                    width: "100%",
+                                    maxWidth: 480,
+                                    borderRadius: "1rem",
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                                  }}
+                                />
+                              </div>
+                            );
+                          }
+                          if (videoBase64) {
+                            return (
+                              <div className="space-y-4 pr-8">
+                                <video
+                                  src={`data:video/mp4;base64,${videoBase64}`}
+                                  controls
+                                  style={{
+                                    width: "100%",
+                                    maxWidth: 480,
+                                    borderRadius: "1rem",
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                                  }}
+                                >
+                                  Your browser does not support the video tag.
+                                </video>
+                              </div>
+                            );
+                          }
+                          // Fallback: markdown/links
+                          return (
+                            <div
+                              className="text-base leading-relaxed pr-8"
+                              dangerouslySetInnerHTML={{
+                                __html: linkify(
+                                  formatMarkdown(message.content)
+                                ),
+                              }}
+                            />
+                          );
+                        })()
                       ) : (
                         <div className="pr-8">
                           <p className="text-base leading-relaxed whitespace-pre-wrap font-medium">

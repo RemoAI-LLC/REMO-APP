@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoIosSend } from "react-icons/io";
-import { FaRobot } from "react-icons/fa";
+
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { usePrivy } from "@privy-io/react-auth";
 import EmailSetupModal from "../components/EmailSetupModal";
@@ -51,31 +51,58 @@ function formatMarkdown(text: string) {
   let formattedText = text;
 
   // Convert headers
-  formattedText = formattedText.replace(/^### (.*$)/gim, '<h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-4 mb-2">$1</h3>');
-  formattedText = formattedText.replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-3">$1</h2>');
-  formattedText = formattedText.replace(/^# (.*$)/gim, '<h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-6 mb-4">$1</h1>');
+  formattedText = formattedText.replace(
+    /^### (.*$)/gim,
+    '<h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-4 mb-2">$1</h3>'
+  );
+  formattedText = formattedText.replace(
+    /^## (.*$)/gim,
+    '<h2 class="text-xl font-bold text-gray-900 dark:text-white mt-6 mb-3">$1</h2>'
+  );
+  formattedText = formattedText.replace(
+    /^# (.*$)/gim,
+    '<h1 class="text-2xl font-bold text-gray-900 dark:text-white mt-6 mb-4">$1</h1>'
+  );
 
   // Convert bold text
-  formattedText = formattedText.replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>');
+  formattedText = formattedText.replace(
+    /\*\*(.*?)\*\*/g,
+    '<strong class="font-semibold text-gray-900 dark:text-white">$1</strong>'
+  );
 
   // Convert italic text
-  formattedText = formattedText.replace(/\*(.*?)\*/g, '<em class="italic text-gray-800 dark:text-gray-200">$1</em>');
+  formattedText = formattedText.replace(
+    /\*(.*?)\*/g,
+    '<em class="italic text-gray-800 dark:text-gray-200">$1</em>'
+  );
 
   // Convert bullet points
-  formattedText = formattedText.replace(/^- (.*$)/gim, '<li class="ml-4 mb-1">$1</li>');
-  formattedText = formattedText.replace(/(<li.*<\/li>)/s, '<ul class="list-disc list-inside mb-3 space-y-1">$1</ul>');
+  formattedText = formattedText.replace(
+    /^- (.*$)/gim,
+    '<li class="ml-4 mb-1">$1</li>'
+  );
+  formattedText = formattedText.replace(
+    /(<li.*<\/li>)/s,
+    '<ul class="list-disc list-inside mb-3 space-y-1">$1</ul>'
+  );
 
   // Convert numbered lists
-  formattedText = formattedText.replace(/^\d+\. (.*$)/gim, '<li class="ml-4 mb-1">$1</li>');
-  formattedText = formattedText.replace(/(<li.*<\/li>)/s, '<ol class="list-decimal list-inside mb-3 space-y-1">$1</ol>');
+  formattedText = formattedText.replace(
+    /^\d+\. (.*$)/gim,
+    '<li class="ml-4 mb-1">$1</li>'
+  );
+  formattedText = formattedText.replace(
+    /(<li.*<\/li>)/s,
+    '<ol class="list-decimal list-inside mb-3 space-y-1">$1</ol>'
+  );
 
   // Convert line breaks to paragraphs
   formattedText = formattedText.replace(/\n\n/g, '</p><p class="mb-3">');
-  formattedText = '<p class="mb-3">' + formattedText + '</p>';
+  formattedText = '<p class="mb-3">' + formattedText + "</p>";
 
   // Clean up empty paragraphs
-  formattedText = formattedText.replace(/<p class="mb-3"><\/p>/g, '');
-  formattedText = formattedText.replace(/<p class="mb-3">\s*<\/p>/g, '');
+  formattedText = formattedText.replace(/<p class="mb-3"><\/p>/g, "");
+  formattedText = formattedText.replace(/<p class="mb-3">\s*<\/p>/g, "");
 
   return formattedText;
 }
@@ -139,7 +166,7 @@ const Home: React.FC = () => {
   const userId = user?.id;
 
   // Function to check email auth status and fetch google email
-  const checkEmailAuthStatus = async () => {
+  const checkEmailAuthStatus = React.useCallback(async () => {
     if (!userId) return;
     try {
       const response = await fetch(`${API_BASE_URL}/auth/status/${userId}`);
@@ -150,12 +177,12 @@ const Home: React.FC = () => {
       setEmailConnected(false);
       setGoogleEmail(null);
     }
-  };
+  }, [userId]);
 
   // Check email status on mount and when userId changes
   useEffect(() => {
     checkEmailAuthStatus();
-  }, [userId]);
+  }, [userId, checkEmailAuthStatus]);
 
   // Initialize speech recognition
   useEffect(() => {

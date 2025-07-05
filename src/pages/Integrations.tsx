@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { FaGoogle } from "react-icons/fa";
-import EmailStatusIndicator from "../components/EmailStatusIndicator";
 import EmailSetupModal from "../components/EmailSetupModal";
 
 const Integrations: React.FC = () => {
@@ -17,16 +16,16 @@ const Integrations: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-bg dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-10">
-      <h1 className="text-4xl font-bold mb-10 text-center">
-        Integrations
-      </h1>
+      <h1 className="text-4xl font-bold mb-10 text-center">Integrations</h1>
 
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between p-6 bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md dark:shadow-[0_4px_20px_rgba(255,255,255,0.05)] hover:shadow-xl dark:hover:shadow-[0_6px_30px_rgba(255,255,255,0.1)] transition-all duration-300 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-4">
             <FaGoogle size={32} className="text-gray-900 dark:text-gray-100" />
             <div className="px-4">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Gmail</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Gmail
+              </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Connect your Gmail to allow Remo AI to send emails, view
                 reminders, and sync calendar events.
@@ -47,7 +46,9 @@ const Integrations: React.FC = () => {
               {emailConnected ? "Disconnect" : "Connect"}
             </button>
           ) : (
-            <span className="text-sm text-gray-400 dark:text-gray-500">Please log in</span>
+            <span className="text-sm text-gray-400 dark:text-gray-500">
+              Please log in
+            </span>
           )}
         </div>
 

@@ -152,6 +152,7 @@ const Home: React.FC = () => {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentTranscriptRef = useRef<string>("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [meetingForm, setMeetingForm] = useState({
     attendees: "",
     subject: "",
@@ -336,6 +337,13 @@ const Home: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Focus textarea after messages are sent and when recording stops
+  useEffect(() => {
+    if (!isLoading && !isRecording && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isLoading, isRecording]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -696,12 +704,14 @@ const Home: React.FC = () => {
       <div className="relative bg-transparent dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl shadow-sm px-4  pb-12">
         {/* Textarea */}
         <textarea
+          ref={textareaRef}
           className="w-full resize-none bg-transparent text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none max-h-[14rem] min-h-[2.5rem] overflow-y-auto p-3"
           placeholder={isListening ? "Listening..." : placeholderText}
           value={isListening ? transcript : inputText}
           onChange={(e) => setInputText(e.target.value)}
           rows={2}
           disabled={isLoading || isRecording}
+          autoFocus
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -748,10 +758,10 @@ const Home: React.FC = () => {
     <div className="flex flex-col h-full w-full bg-gray-50 dark:bg-gray-900">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto w-full">
-        <div className="w-full p-4 space-y-4 max-w-4xl mx-auto">
+        <div className="w-full p-4 h-full space-y-4 max-w-4xl mx-auto">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center justify-center text-center text-gray-500 dark:text-gray-400">
-              <div className=" w-full">
+            <div className="flex flex-col items-center h-full justify-center text-center text-gray-500 dark:text-gray-400">
+              <div className="w-full">
                 <Link to="/" className="mb-4 inline-block">
                   <img
                     src={logo}
@@ -767,7 +777,9 @@ const Home: React.FC = () => {
                   text="I can help you with:"
                   words={["reminders", "tasks", "shopping", "notes", "ideas"]}
                 />
-                <div className="mt-6">{InputBox}</div>
+                <div className="mt-6 flex-shrink-0 pb-4 w-full flex justify-center items-center">
+                  {InputBox}
+                </div>
               </div>
             </div>
           ) : (

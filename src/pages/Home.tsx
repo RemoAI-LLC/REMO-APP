@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { IoIosSend } from "react-icons/io";
+import { IoCopy, IoCheckmark, IoAttach, IoImage, IoVideocam, IoPlayCircle } from "react-icons/io5";
 
 import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { usePrivy } from "@privy-io/react-auth";
@@ -44,6 +45,12 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  file?: {
+    name: string;
+    size: number;
+    type: string;
+    url?: string;
+  };
 }
 
 // Utility to convert markdown to formatted HTML
@@ -148,11 +155,15 @@ const Home: React.FC = () => {
   const [showMeetingForm, setShowMeetingForm] = useState(false);
   const [pendingMeetingForm, setPendingMeetingForm] = useState(false);
   const [googleEmail, setGoogleEmail] = useState<string | null>(null);
+  const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedCreationType, setSelectedCreationType] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const voiceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const currentTranscriptRef = useRef<string>("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [meetingForm, setMeetingForm] = useState({
     attendees: "",
     subject: "",
@@ -369,53 +380,55 @@ const Home: React.FC = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || isLoading) return;
-
-    // If user intent is to schedule a meeting, show the form immediately
-    if (isScheduleMeetingIntent(inputText)) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "user",
-          content: inputText,
-          timestamp: new Date(),
-        },
-      ]);
-      setPendingMeetingForm(true);
-      setInputText("");
-      return;
-    }
-
-    // Check for email intent
-    const emailIntent = detectEmailIntent(inputText);
+    if (!inputText.trim() && !selectedFile) return;
 
     const userMessage: Message = {
       role: "user",
-      content: inputText,
+      content: inputText.trim(),
       timestamp: new Date(),
+      ...(selectedFile && {
+        file: {
+          name: selectedFile.name,
+          size: selectedFile.size,
+          type: selectedFile.type,
+        },
+      }),
     };
 
     setMessages((prev) => [...prev, userMessage]);
     setInputText("");
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
     setIsLoading(true);
 
-    // If email intent detected and Gmail not connected, show setup prompt
-    if (
-      emailIntent.type !== "none" &&
-      emailIntent.confidence > 0.7 &&
-      !emailConnected
-    ) {
-      const setupMessage: Message = {
-        role: "assistant",
-        content: `📧 I detected you want to work with emails! To use email features, you'll need to connect your Gmail account first.\n\nClick the "Connect Gmail" button in the top right, or I can help you with other tasks like reminders and todos.`,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, setupMessage]);
-      setIsLoading(false);
-      return;
-    }
-
     try {
+      // Check for email intent
+      const emailIntent = detectEmailIntent(inputText);
+      if (emailIntent && !emailConnected) {
+        setShowEmailSetup(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Check for meeting scheduling intent
+      if (isScheduleMeetingIntent(inputText)) {
+        setPendingMeetingForm(true);
+        setIsLoading(false);
+        return;
+      }
+
+      // Prepare form data for file upload
+      const formData = new FormData();
+      formData.append("message", inputText);
+      if (selectedFile) {
+        // formData.append("file", selectedFile);
+      }
+      if (userId) {
+        formData.append("user_id", userId);
+      }
+
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
         headers: {
@@ -427,7 +440,7 @@ const Home: React.FC = () => {
             role: msg.role,
             content: msg.content,
           })),
-          user_id: userId, // Include user ID for user-specific functionality
+          user_id: userId,
         }),
       });
 
@@ -699,14 +712,92 @@ const Home: React.FC = () => {
     }
   };
 
+  // Handle file selection
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert("File size must be less than 10MB");
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  // Remove selected file
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  // Copy message to clipboard
+  const copyToClipboard = async (text: string, messageId: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedMessageId(messageId);
+      setTimeout(() => setCopiedMessageId(null), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error("Failed to copy text: ", err);
+    }
+  };
+
+  // Handle creation option selection
+  const handleCreationOption = (type: string) => {
+    setSelectedCreationType(type);
+    // For now, just update the placeholder text
+    const placeholders = {
+      image: "Describe the image you want to create...",
+      video: "Describe the video you want to create...",
+      reel: "Describe the reel you want to create..."
+    };
+    // You can add logic here to handle the creation type
+    console.log(`Selected creation type: ${type}`);
+  };
+
   const InputBox = (
-    <form onSubmit={handleSendMessage} className="w-full p-5 max-w-3xl">
-      <div className="relative bg-transparent dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-2xl shadow-sm px-4  pb-12">
+    <form onSubmit={handleSendMessage} className="w-full p-6 max-w-3xl mx-auto">
+      <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-4">
+        {/* Selected File Display */}
+        {selectedFile && (
+          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <IoAttach
+                  className="text-blue-600 dark:text-blue-400"
+                  size={16}
+                />
+                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                  {selectedFile.name}
+                </span>
+                <span className="text-xs text-blue-600 dark:text-blue-400">
+                  ({(selectedFile.size / 1024 / 1024).toFixed(2)} MB)
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={removeSelectedFile}
+                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                title="Remove file"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Textarea */}
         <textarea
           ref={textareaRef}
-          className="w-full resize-none bg-transparent text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none max-h-[14rem] min-h-[2.5rem] overflow-y-auto p-3"
-          placeholder={isListening ? "Listening..." : placeholderText}
+          className="w-full resize-none bg-transparent text-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 outline-none max-h-[14rem] min-h-[2.5rem] overflow-y-auto p-2 font-medium pb-16"
+          placeholder={
+            selectedCreationType === 'image' ? "Describe the image you want to create..." :
+            selectedCreationType === 'video' ? "Describe the video you want to create..." :
+            selectedCreationType === 'reel' ? "Describe the reel you want to create..." :
+            isListening ? "Listening..." : placeholderText
+          }
           value={isListening ? transcript : inputText}
           onChange={(e) => setInputText(e.target.value)}
           rows={2}
@@ -720,34 +811,123 @@ const Home: React.FC = () => {
           }}
         />
 
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          onChange={handleFileSelect}
+          className="hidden"
+          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+        />
+
+        {/* Icons in bottom-left corner */}
+        <div className="absolute bottom-4 left-4 flex items-center gap-2">
+          {/* Create Image */}
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={() => handleCreationOption('image')}
+              disabled={isLoading}
+              className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
+                selectedCreationType === 'image'
+                  ? "bg-gradient-to-r from-purple-500 to-pink-600 text-white"
+                  : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
+              }`}
+              title="Create an image"
+            >
+              <IoImage size={18} />
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+              Create an image
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
+
+          {/* Create Video */}
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={() => handleCreationOption('video')}
+              disabled={isLoading}
+              className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
+                selectedCreationType === 'video'
+                  ? "bg-gradient-to-r from-blue-500 to-cyan-600 text-white"
+                  : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
+              }`}
+              title="Create a video"
+            >
+              <IoVideocam size={18} />
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+              Create a video
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
+
+          {/* Create Reel */}
+          <div className="relative group">
+            <button
+              type="button"
+              onClick={() => handleCreationOption('reel')}
+              disabled={isLoading}
+              className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
+                selectedCreationType === 'reel'
+                  ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white"
+                  : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300"
+              }`}
+              title="Create a reel"
+            >
+              <IoPlayCircle size={18} />
+            </button>
+            {/* Tooltip */}
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+              Create a reel
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+            </div>
+          </div>
+        </div>
+
         {/* Icons in bottom-right corner */}
-        <div className="absolute bottom-2 right-3 flex items-center gap-2">
+        <div className="absolute bottom-4 right-4 flex items-center gap-3">
+          {/* File attachment button */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isLoading}
+            className="p-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
+            title="Attach file"
+          >
+            <IoAttach size={18} />
+          </button>
+
           {/* Mic button */}
           <button
             type="button"
             onClick={toggleRecording}
             disabled={isLoading}
-            className={`p-2 rounded-full transition ${
+            className={`p-3 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl ${
               isRecording
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500"
-            } text-white`}
+                ? "bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 animate-pulse"
+                : "bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500"
+            } text-gray-700 dark:text-gray-300`}
             title={isRecording ? "Stop recording" : "Start voice recording"}
           >
             {isRecording ? (
-              <FaMicrophoneSlash size={16} />
+              <FaMicrophoneSlash size={18} className="text-white" />
             ) : (
-              <FaMicrophone size={16} />
+              <FaMicrophone size={18} />
             )}
           </button>
 
           {/* Send button */}
           <button
             type="submit"
-            disabled={isLoading || !inputText.trim()}
-            className="p-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isLoading || (!inputText.trim() && !selectedFile)}
+            className="p-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-full hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-md"
           >
-            <IoIosSend size={16} />
+            <IoIosSend size={18} />
           </button>
         </div>
       </div>
@@ -755,29 +935,36 @@ const Home: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col h-full w-full bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-full w-full bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Messages Area */}
       <div className="flex-1 overflow-y-auto w-full">
-        <div className="w-full p-4 h-full space-y-4 max-w-4xl mx-auto">
+        <div className="w-full p-6 h-full space-y-6 max-w-5xl mx-auto pb-8">
           {messages.length === 0 ? (
-            <div className="flex flex-col items-center h-full justify-center text-center text-gray-500 dark:text-gray-400">
-              <div className="w-full">
-                <Link to="/" className="mb-4 inline-block">
-                  <img
-                    src={logo}
-                    alt="Logo"
-                    className="h-30 w-auto rounded-full mx-auto"
-                  />
+            <div className="flex flex-col items-center h-full justify-center text-center text-gray-600 dark:text-gray-300">
+              <div className="w-full max-w-2xl">
+                <Link to="/" className="mb-8 inline-block">
+                  <div className="relative">
+                    <img
+                      src={logo}
+                      alt="Logo"
+                      className="h-32 w-auto rounded-full mx-auto shadow-2xl"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-full blur-xl"></div>
+                  </div>
                 </Link>
-                <h2 className="text-2xl font-semibold mb-2">
+                <h2 className="text-4xl font-bold mb-4 bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                   Welcome to Remo AI!
                 </h2>
-                <p className="text-lg mb-2">I'm your personal AI assistant.</p>
-                <RotateWords
-                  text="I can help you with:"
-                  words={["reminders", "tasks", "shopping", "notes", "ideas"]}
-                />
-                <div className="mt-6 flex-shrink-0 pb-4 w-full flex justify-center items-center">
+                <p className="text-xl mb-4 text-gray-700 dark:text-gray-300 font-medium">
+                  I'm your personal AI assistant.
+                </p>
+                <div className="mb-8">
+                  <RotateWords
+                    text="I can help you with:"
+                    words={["reminders", "tasks", "shopping", "notes", "ideas"]}
+                  />
+                </div>
+                <div className="mt-8 flex-shrink-0 pb-4 w-full flex justify-center items-center">
                   {InputBox}
                 </div>
               </div>
@@ -792,18 +979,18 @@ const Home: React.FC = () => {
                   }`}
                 >
                   <div
-                    className={`flex items-start space-x-3 ${
+                    className={`flex items-start space-x-4 ${
                       message.role === "user"
-                        ? "flex-row-reverse space-x-reverse w-3/4 max-w-3/4"
-                        : "w-full max-w-full"
+                        ? "flex-row-reverse space-x-reverse w-4/5 max-w-4xl"
+                        : "w-full max-w-4xl"
                     }`}
                   >
-                    {/* Avatar */}
+                    {/* Enhanced Avatar */}
                     <div
-                      className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg ${
                         message.role === "user"
-                          ? "bg-blue-500"
-                          : "bg-gray-200 dark:bg-gray-700"
+                          ? "bg-gradient-to-br from-blue-500 to-indigo-600 ring-2 ring-blue-200 dark:ring-blue-800"
+                          : "bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 ring-2 ring-gray-200 dark:ring-gray-700"
                       }`}
                     >
                       {message.role === "user" ? (
@@ -814,7 +1001,7 @@ const Home: React.FC = () => {
                             className="w-full h-full object-cover rounded-full"
                           />
                         ) : (
-                          <div className="w-full h-full rounded-full flex items-center justify-center bg-blue-500 text-white font-semibold text-sm uppercase">
+                          <div className="w-full h-full rounded-full flex items-center justify-center bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm uppercase">
                             {getUserInitial(user)}
                           </div>
                         )
@@ -827,35 +1014,77 @@ const Home: React.FC = () => {
                       )}
                     </div>
 
-                    {/* Message Bubble */}
+                    {/* Enhanced Message Bubble */}
                     <div
-                      className={`px-4 py-2 rounded-lg ${
+                      className={`px-6 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 max-w-3xl mb-4 relative group ${
                         message.role === "user"
-                          ? "bg-blue-500 text-white"
-                          : "bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700"
+                          ? "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-blue-500/25"
+                          : "bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-900 dark:text-white border border-gray-200/50 dark:border-gray-700/50"
                       }`}
                     >
                       {message.role === "assistant" ? (
                         <div
-                          className="text-sm"
+                          className="text-base leading-relaxed pr-8"
                           dangerouslySetInnerHTML={{
                             __html: linkify(formatMarkdown(message.content)),
                           }}
                         />
                       ) : (
-                        <p className="text-sm whitespace-pre-wrap">
-                          {message.content}
-                        </p>
+                        <div className="pr-8">
+                          <p className="text-base leading-relaxed whitespace-pre-wrap font-medium">
+                            {message.content}
+                          </p>
+                          {/* File attachment display */}
+                          {message.file && (
+                            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                              <div className="flex items-center space-x-2">
+                                <IoAttach
+                                  className="text-blue-600 dark:text-blue-400"
+                                  size={16}
+                                />
+                                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                  {message.file.name}
+                                </span>
+                                <span className="text-xs text-blue-600 dark:text-blue-400">
+                                  (
+                                  {(message.file.size / 1024 / 1024).toFixed(2)}{" "}
+                                  MB)
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       )}
-                      <p
-                        className={`text-xs mt-1 ${
-                          message.role === "user"
-                            ? "text-blue-100"
-                            : "text-gray-500 dark:text-gray-400"
-                        }`}
-                      >
-                        {formatTime(message.timestamp)}
-                      </p>
+                      <div className="flex items-center justify-between mt-3">
+                        <p
+                          className={`text-xs font-medium ${
+                            message.role === "user"
+                              ? "text-blue-100"
+                              : "text-gray-500 dark:text-gray-400"
+                          }`}
+                        >
+                          {formatTime(message.timestamp)}
+                        </p>
+                        {/* Copy Button - Only for assistant messages */}
+                        {message.role === "assistant" && (
+                          <button
+                            onClick={() =>
+                              copyToClipboard(message.content, index)
+                            }
+                            className="p-1.5 rounded-md transition-all duration-300 bg-gray-100/80 dark:bg-gray-700/80 hover:bg-gray-200/80 dark:hover:bg-gray-600/80 text-gray-600 dark:text-gray-300"
+                            title="Copy message"
+                          >
+                            {copiedMessageId === index ? (
+                              <IoCheckmark
+                                size={14}
+                                className="text-green-500"
+                              />
+                            ) : (
+                              <IoCopy size={14} />
+                            )}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -898,28 +1127,28 @@ const Home: React.FC = () => {
 
           {isLoading && (
             <div className="flex justify-start">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="flex items-start space-x-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center flex-shrink-0 shadow-lg ring-2 ring-gray-200 dark:ring-gray-700">
                   <img
                     src={logo}
                     alt="Remo AI"
                     className="w-full h-full object-cover rounded-full"
                   />
                 </div>
-                <div className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700 px-4 py-2 rounded-lg">
-                  <div className="flex items-center space-x-2">
+                <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm text-gray-900 dark:text-white border border-gray-200/50 dark:border-gray-700/50 px-6 py-4 rounded-2xl shadow-lg">
+                  <div className="flex items-center space-x-3">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-bounce"></div>
                       <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-bounce"
                         style={{ animationDelay: "0.1s" }}
                       ></div>
                       <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
+                        className="w-2 h-2 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full animate-bounce"
                         style={{ animationDelay: "0.2s" }}
                       ></div>
                     </div>
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">
                       Remo is thinking...
                     </span>
                   </div>
@@ -930,9 +1159,9 @@ const Home: React.FC = () => {
 
           {isListening && (
             <div className="flex justify-end">
-              <div className="flex items-center space-x-2 bg-red-100 dark:bg-red-900 px-3 py-2 rounded-lg">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                <span className="text-sm text-red-700 dark:text-red-300">
+              <div className="flex items-center space-x-3 bg-gradient-to-r from-red-100 to-pink-100 dark:from-red-900/50 dark:to-pink-900/50 backdrop-blur-sm px-4 py-3 rounded-2xl border border-red-200/50 dark:border-red-700/50 shadow-lg">
+                <div className="w-3 h-3 bg-gradient-to-r from-red-500 to-pink-600 rounded-full animate-pulse"></div>
+                <span className="text-sm text-red-700 dark:text-red-300 font-medium">
                   Listening... {transcript && `"${transcript}"`}
                 </span>
                 <span className="text-xs text-red-600 dark:text-red-400">
@@ -944,8 +1173,8 @@ const Home: React.FC = () => {
 
           {transcript && !isListening && (
             <div className="flex justify-end">
-              <div className="flex items-center space-x-2 bg-blue-100 dark:bg-blue-900 px-3 py-2 rounded-lg">
-                <span className="text-sm text-blue-700 dark:text-blue-300">
+              <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/50 dark:to-indigo-900/50 backdrop-blur-sm px-4 py-3 rounded-2xl border border-blue-200/50 dark:border-blue-700/50 shadow-lg">
+                <span className="text-sm text-blue-700 dark:text-blue-300 font-medium">
                   Sending: "{transcript}"
                 </span>
               </div>
@@ -954,7 +1183,7 @@ const Home: React.FC = () => {
 
           {showMeetingForm && (
             <div className="flex justify-start">
-              <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-6 py-4 rounded-lg max-w-md w-full shadow-lg">
+              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50 px-6 py-4 rounded-2xl max-w-md w-full shadow-lg">
                 {/* ...Meeting Form (unchanged)... */}
               </div>
             </div>
@@ -981,7 +1210,7 @@ const Home: React.FC = () => {
 
       {/* Input Area */}
       {messages.length > 0 && (
-        <div className="flex-shrink-0 pb-4 w-full flex justify-center items-center">
+        <div className="flex-shrink-0 pb-6 w-full flex justify-center items-center">
           {InputBox}
         </div>
       )}

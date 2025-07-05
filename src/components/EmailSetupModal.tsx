@@ -1,5 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { FaEnvelope, FaGoogle, FaTimes, FaCheck, FaSpinner } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import {
+  FaEnvelope,
+  FaGoogle,
+  FaTimes,
+  FaCheck,
+  FaSpinner,
+} from "react-icons/fa";
 
 interface EmailSetupModalProps {
   isOpen: boolean;
@@ -18,7 +24,7 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
   isOpen,
   onClose,
   onSuccess,
-  userId
+  userId,
 }) => {
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,13 +43,13 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
   const checkAuthStatus = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch(`${API_BASE_URL}/auth/status/${userId}`);
       const data = await response.json();
-      
+
       setAuthStatus(data);
-      
+
       if (data.authenticated) {
         // Auto-close modal if already authenticated
         setTimeout(() => {
@@ -52,8 +58,8 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
         }, 1500);
       }
     } catch (err) {
-      setError('Failed to check authentication status');
-      console.error('Auth status check error:', err);
+      setError("Failed to check authentication status");
+      console.error("Auth status check error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -62,35 +68,41 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
   const initiateOAuth = async () => {
     setIsConnecting(true);
     setError(null);
-    
+
     try {
-      const response = await fetch(`${API_BASE_URL}/auth/google/login?user_id=${encodeURIComponent(userId)}`);
+      const response = await fetch(
+        `${API_BASE_URL}/auth/google/login?user_id=${encodeURIComponent(
+          userId
+        )}`
+      );
       const data = await response.json();
-      
+
       if (data.authorization_url) {
         // Open OAuth URL in new window
         const authWindow = window.open(
           data.authorization_url,
-          'gmail-auth',
-          'width=500,height=600,scrollbars=yes,resizable=yes'
+          "gmail-auth",
+          "width=500,height=600,scrollbars=yes,resizable=yes"
         );
-        
+
         // Poll for completion
         const pollInterval = setInterval(async () => {
           try {
-            const statusResponse = await fetch(`${API_BASE_URL}/auth/status/${userId}`);
+            const statusResponse = await fetch(
+              `${API_BASE_URL}/auth/status/${userId}`
+            );
             const statusData = await statusResponse.json();
-            
+
             if (statusData.authenticated) {
               clearInterval(pollInterval);
               setAuthStatus(statusData);
               setIsConnecting(false);
-              
+
               // Close auth window
               if (authWindow) {
                 authWindow.close();
               }
-              
+
               // Show success and close modal
               setTimeout(() => {
                 onSuccess();
@@ -98,10 +110,10 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
               }, 2000);
             }
           } catch (err) {
-            console.error('Status check error:', err);
+            console.error("Status check error:", err);
           }
         }, 2000);
-        
+
         // Timeout after 5 minutes
         setTimeout(() => {
           clearInterval(pollInterval);
@@ -109,15 +121,14 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
             authWindow.close();
           }
           setIsConnecting(false);
-          setError('Authentication timed out. Please try again.');
+          setError("Authentication timed out. Please try again.");
         }, 300000);
-        
       } else {
-        throw new Error('Failed to get authorization URL');
+        throw new Error("Failed to get authorization URL");
       }
     } catch (err) {
-      setError('Failed to initiate Gmail connection');
-      console.error('OAuth initiation error:', err);
+      setError("Failed to initiate Gmail connection");
+      console.error("OAuth initiation error:", err);
       setIsConnecting(false);
     }
   };
@@ -125,24 +136,26 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
   const disconnectGmail = async () => {
     setIsLoading(true);
     setError(null);
-    
     try {
       const response = await fetch(`${API_BASE_URL}/auth/logout/${userId}`, {
-        method: 'DELETE'
+        method: "DELETE",
       });
-      
-      if (response.ok) {
+      const data = await response.json();
+      if (data.success) {
         setAuthStatus({
           authenticated: false,
           scopes: [],
-          message: 'Disconnected from Gmail'
+          message: "Disconnected",
         });
+        setTimeout(() => {
+          onClose();
+        }, 1000);
       } else {
-        throw new Error('Failed to disconnect');
+        setError("Failed to disconnect Gmail. Please try again.");
       }
     } catch (err) {
-      setError('Failed to disconnect Gmail');
-      console.error('Disconnect error:', err);
+      setError("Failed to disconnect Gmail. Please try again.");
+      console.error("Logout error:", err);
     } finally {
       setIsLoading(false);
     }
@@ -201,7 +214,8 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
               </div>
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
                 <p className="text-xs text-gray-600 dark:text-gray-300">
-                  <strong>Access granted:</strong> Read, send, and manage emails + Create calendar events
+                  <strong>Access granted:</strong> Read, send, and manage emails
+                  + Create calendar events
                 </p>
               </div>
               <button
@@ -222,10 +236,11 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
                   Connect Your Google Account
                 </h3>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Securely connect your Google account to enable email and calendar features in chat
+                  Securely connect your Google account to enable email and
+                  calendar features in chat
                 </p>
               </div>
-              
+
               <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                 <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
                   What you can do:
@@ -239,7 +254,7 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
                   <li>• Schedule meetings with invites</li>
                 </ul>
               </div>
-              
+
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                 <h4 className="font-medium text-gray-900 dark:text-white mb-2">
                   Security & Privacy:
@@ -251,7 +266,7 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
                   <li>• Data stays in your Gmail account</li>
                 </ul>
               </div>
-              
+
               <button
                 onClick={initiateOAuth}
                 disabled={isConnecting}
@@ -271,7 +286,7 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
               </button>
             </div>
           )}
-          
+
           {/* Error Display */}
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3">
@@ -284,4 +299,4 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
   );
 };
 
-export default EmailSetupModal; 
+export default EmailSetupModal;

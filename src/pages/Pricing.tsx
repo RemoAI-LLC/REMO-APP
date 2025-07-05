@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import ThemeToggle from "../components/ThemeToggle";
+
 
 type BillingOption = "monthly" | "annual";
 
@@ -100,10 +100,7 @@ const Pricing: React.FC = () => {
   return (
     <div className="min-h-screen bg-bg dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-20 px-4">
       <div className="max-w-6xl mx-auto text-center">
-        {/* Theme Toggle */}
-        <div className="flex justify-end mb-8">
-          <ThemeToggle />
-        </div>
+       
         
         <h2 className="text-4xl font-bold mb-4">Plans and Pricing</h2>
         <p className="text-gray-500 dark:text-gray-400 mb-8">

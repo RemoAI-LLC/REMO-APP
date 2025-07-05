@@ -1,18 +1,24 @@
 import { useLanguage } from "../../context/LanguageContext";
 import content from "../../content";
+import type { UseCaseItem } from "../../content";
 import { motion } from "framer-motion";
-
-const sizeClasses = {
-  tall: "col-span-1 md:col-span-2 lg:col-span-1 md:row-span-4 lg:h-[660px]",
-  normal: "col-span-1 md:col-span-2 lg:col-span-1 md:row-span-2 lg:h-80",
-};
 
 const Usecases = () => {
   const { language } = useLanguage();
-  const { usecases } = content[language];
+  // Fallback to English if language is not found
+  const langContent = content[language] || content["en"];
+  const usecases = langContent.usecases;
+
+  // Masonry: split items into 3 columns
+  const columns: UseCaseItem[][] = [[], [], []];
+  if (usecases.items && usecases.items.length > 0) {
+    usecases.items.forEach((item, i) => {
+      columns[i % 3].push(item);
+    });
+  }
 
   return (
-    <section id="usecases-section" className="w-full py-20 bg-bg text-center">
+    <section id="usecases-section" className="w-full py-20 bg-white dark:bg-gray-900 text-center">
       {/* Title */}
       <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 text-text">
         {usecases.title}
@@ -21,59 +27,61 @@ const Usecases = () => {
         {usecases.subtitle}
       </p>
 
-      {/* Use Case Cards Grid */}
+      {/* Masonry Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-4 sm:px-6 md:px-12 lg:px-20">
-        {usecases.items.map((u, i) => {
-          const directions = [
-            { x: -100, opacity: 0 }, // from left
-            { y: -100, opacity: 0 }, // from top
-            { x: 100, opacity: 0 }, // from right
-            { x: -100, opacity: 0 }, // from left
-            { y: 100, opacity: 0 }, // from bottom
-          ];
-          const variant = directions[i % directions.length];
-
-          return (
-            <motion.a
-              key={i}
-              href={u.redirectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              initial={variant}
-              whileInView={{ x: 0, y: 0, opacity: 1 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.6, delay: i * 0.05, ease: "easeOut" }}
-              className={
-                sizeClasses[u.size as keyof typeof sizeClasses] ||
-                sizeClasses.normal
-              }
-            >
-              <div className="relative bg-white dark:bg-black rounded-xl overflow-hidden shadow-md dark:shadow-[0_4px_20px_rgba(255,255,255,0.05)] hover:shadow-xl dark:hover:shadow-[0_6px_30px_rgba(255,255,255,0.1)] transition-all duration-300 transform hover:scale-105 h-full min-h-[300px] flex flex-col p-4">
-                <h3 className="font-semibold text-lg mb-2 text-text dark:text-white">
-                  {u.title}
-                </h3>
-
-                {/* Light Mode Image */}
-                {u.img && (
-                  <img
-                    src={u.img}
-                    alt={u.title}
-                    className="max-w-full h-auto mb-4 block dark:hidden object-contain"
-                  />
-                )}
-
-                {/* Dark Mode Image */}
-                {u.darkImg && (
-                  <img
-                    src={u.darkImg}
-                    alt={`${u.title} (dark mode)`}
-                    className="max-w-full h-auto mb-4 hidden dark:block object-contain"
-                  />
-                )}
-              </div>
-            </motion.a>
-          );
-        })}
+        {columns.map((col, colIdx) => (
+          <div key={colIdx} className="flex flex-col gap-5">
+            {col.map((u, i) => {
+              const directions = [
+                { x: -100, opacity: 0 }, // from left
+                { y: -100, opacity: 0 }, // from top
+                { x: 100, opacity: 0 }, // from right
+                { x: -100, opacity: 0 }, // from left
+                { y: 100, opacity: 0 }, // from bottom
+              ];
+              const variant = directions[(colIdx * 3 + i) % directions.length];
+              return (
+                <motion.a
+                  key={i}
+                  href={u.redirectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  initial={variant}
+                  animate={{ x: 0, y: 0, opacity: 1 }}
+                  transition={{ duration: 0.6, delay: (colIdx * 3 + i) * 0.05, ease: "easeOut" }}
+                >
+                  <div className="relative bg-white dark:bg-black rounded-xl overflow-hidden shadow-md dark:shadow-[0_4px_20px_rgba(255,255,255,0.05)] hover:shadow-xl dark:hover:shadow-[0_6px_30px_rgba(255,255,255,0.1)] transition-all duration-300 transform hover:scale-105 flex flex-col p-4">
+                    <h3 className="font-semibold text-lg mb-2 text-text dark:text-white">
+                      {u.title}
+                    </h3>
+                    {/* Light Mode Image */}
+                    {u.img && (
+                      <img
+                        src={u.img}
+                        alt={u.title}
+                        className="w-auto mx-auto mb-4 block dark:hidden object-contain"
+                      />
+                    )}
+                    {/* Dark Mode Image */}
+                    {u.darkImg && (
+                      <img
+                        src={u.darkImg}
+                        alt={`${u.title} (dark mode)`}
+                        className="w-auto mx-auto mb-4 hidden dark:block object-contain"
+                      />
+                    )}
+                  </div>
+                </motion.a>
+              );
+            })}
+          </div>
+        ))}
+        {/* If no usecases, show message */}
+        {(!usecases.items || usecases.items.length === 0) && (
+          <div className="col-span-3 text-gray-400 text-center py-20">
+            No use cases available.
+          </div>
+        )}
       </div>
 
       {/* Explore More Button */}

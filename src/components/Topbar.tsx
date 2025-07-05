@@ -2,7 +2,11 @@ import React, { useState, useRef, useEffect } from "react";
 import { IoChevronDownSharp, IoChevronUpSharp } from "react-icons/io5";
 import { useLogin, useLogout, usePrivy } from "@privy-io/react-auth";
 
-const Topbar: React.FC = () => {
+interface TopbarProps {
+  onMenuClick?: () => void;
+}
+
+const Topbar: React.FC<TopbarProps> = ({ onMenuClick }) => {
   const { authenticated, ready, user } = usePrivy();
   const { login } = useLogin();
   const { logout } = useLogout();
@@ -74,6 +78,14 @@ const Topbar: React.FC = () => {
 
   return (
     <header className="w-full h-16 z-40 flex items-center justify-between px-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      {/* Hamburger for mobile */}
+      <button
+        className="lg:hidden mr-2 text-2xl text-gray-700 dark:text-gray-200 focus:outline-none"
+        onClick={onMenuClick}
+        aria-label="Open sidebar menu"
+      >
+        <span>&#9776;</span>
+      </button>
       <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">REMO</h1>
       <div className="flex items-center gap-4">
         {ready && authenticated ? (

@@ -73,19 +73,17 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
-        {/* Close button for mobile */}
-        <div className="lg:hidden flex justify-end p-2 flex-shrink-0">
-          <button 
-            onClick={onClose} 
-            className="text-2xl text-gray-500 hover:text-gray-900 dark:hover:text-white p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            aria-label="Close sidebar"
-          >
-            <span>&times;</span>
-          </button>
-        </div>
-        
+        {/* Overlay to hide border behind logo */}
+        <div
+          className={`absolute left-0 top-0 z-10 transition-all duration-300`}
+          style={{
+            width: shouldExpand ? '16rem' : '4rem', // w-64 or w-16
+            height: '4rem', // match logo section height (h-16)
+            background: 'inherit',
+          }}
+        />
         {/* Logo */}
-        <div className="h-16 flex items-center px-3 transition-all duration-300 flex-shrink-0">
+        <div className="h-16 flex items-center px-3 transition-all duration-300 flex-shrink-0 relative z-20">
           <Link to="/" className="flex items-center">
             <img
               src={logo}

@@ -9,9 +9,10 @@ import { TbFileInvoice } from "react-icons/tb";
 import { CiSettings } from "react-icons/ci";
 import { CiMail } from "react-icons/ci";
 import { GrDocumentText } from "react-icons/gr";
+import { FaArrowUp } from "react-icons/fa";
+import { FaTachometerAlt } from "react-icons/fa";
 import ContactUsModal from "../pages/ContactUs";
 import SettingsModal from "./SettingsModal";
-import { FaArrowUp } from "react-icons/fa";
 import ThemeToggle from "./ThemeToggle";
 
 interface SidebarProps {
@@ -102,6 +103,29 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
 
         {/* Scrollable Navigation */}
         <nav className="flex-1 px-2 py-4 pb-32 space-y-2 overflow-y-auto min-h-0">
+          <div className="relative group">
+            <Link
+              to="/dashboard"
+              className="flex items-center px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
+            >
+              <div className="min-w-[20px] flex justify-center">
+                <FaTachometerAlt size={20} />
+              </div>
+              <span
+                className={`ml-3 whitespace-nowrap transition-opacity duration-200 ${
+                  shouldExpand ? "opacity-100" : "opacity-0"
+                }`}
+              >
+                Dashboard
+              </span>
+            </Link>
+            {/* Tooltip */}
+            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+              Dashboard
+              <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
+            </div>
+          </div>
+
           <div className="relative group">
             <Link
               to="/usecases"

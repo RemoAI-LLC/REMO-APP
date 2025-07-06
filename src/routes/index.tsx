@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, useLocation, Navigate } from "react-router-dom";
 import Home from "../pages/Home";
+import Dashboard from "../pages/Dashboard";
 import SmartApply from "../pages/SmartApply";
 import Usecases from "../pages/Usecases";
 import Integrations from "../pages/Integrations";
@@ -22,6 +23,7 @@ const AppRoutes: React.FC = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/home" element={<Home />} />
+      <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/usecases" element={<Usecases />} />
       <Route path="/SmartApply" element={<SmartApply />} />
       <Route path="/integrations" element={<Integrations />} />

@@ -78,7 +78,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick, sidebarExpanded = false })
   };
 
   return (
-    <header 
+    <header
       className={`
         fixed top-0 right-0 h-16 z-50 flex items-center justify-between px-6 
         bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm
@@ -102,7 +102,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick, sidebarExpanded = false })
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
         </div>
       </div>
-      
+
       <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">REMO</h1>
       <div className="flex items-center gap-4">
         {ready && authenticated ? (
@@ -130,10 +130,11 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick, sidebarExpanded = false })
                 )}
               </button>
               {/* Tooltip */}
-              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
                 User menu
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
               </div>
+
             </div>
 
             {isUserDropdownOpen && (

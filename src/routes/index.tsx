@@ -8,6 +8,7 @@ import Pricing from "../pages/Pricing";
 import PaymentSuccess from "../pages/PaymentSuccess";
 import { useAccess } from "../context/AccessContext";
 import UpgradePlan from "../pages/UpgradePlan";
+import Billing from "../pages/Billing";
 // import UsecasePage from '../pages/UsecasePage';
 
 const AppRoutes: React.FC = () => {
@@ -27,6 +28,7 @@ const AppRoutes: React.FC = () => {
       <Route path="/Pricing" element={<Pricing />} />
       <Route path="/payment-success" element={<PaymentSuccess />} />
       <Route path="/upgrade" element={<UpgradePlan />} />
+      <Route path="/billing" element={<Billing />} />
     </Routes>
   );
 };

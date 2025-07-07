@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import { IoCog, IoDesktop, IoLink, IoPerson, IoColorPalette, IoNotifications, IoLanguage, IoShield } from "react-icons/io5";
 import { usePrivy } from "@privy-io/react-auth";
+import { useNavigate } from "react-router-dom";
 
 type SettingsTab = "general" | "interfaces" | "integrations" | "account" | "appearance" | "notifications" | "privacy";
 
 const Settings: React.FC = () => {
-  const { user } = usePrivy();
+  const { user, logout } = usePrivy();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [settings, setSettings] = useState({
     // General settings
     language: "en",
@@ -39,6 +44,49 @@ const Settings: React.FC = () => {
       ...prev,
       [key]: value
     }));
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== "DELETE_ACCOUNT") {
+      alert("Please type 'DELETE_ACCOUNT' to confirm account deletion.");
+      return;
+    }
+
+    setIsDeleting(true);
+    try {
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      
+      const response = await fetch(`${API_BASE_URL}/account/delete`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_id: user?.id,
+          confirmation: deleteConfirmation,
+          reason: "User requested account deletion"
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert("Account deleted successfully. You will be logged out.");
+        
+        // Logout and redirect to pricing page
+        await logout();
+        navigate("/pricing");
+      } else {
+        const error = await response.json();
+        alert(`Error deleting account: ${error.detail || 'Unknown error'}`);
+      }
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      alert('Error deleting account. Please try again.');
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+      setDeleteConfirmation("");
+    }
   };
 
   const tabs = [
@@ -432,9 +480,66 @@ const Settings: React.FC = () => {
           </div>
 
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">
-              Delete Account
-            </button>
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-lg font-medium text-red-600 dark:text-red-400 mb-2">Danger Zone</h4>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                  Once you delete your account, there is no going back. Please be certain.
+                </p>
+              </div>
+              
+              {!showDeleteConfirm ? (
+                <button 
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Delete Account
+                </button>
+              ) : (
+                <div className="space-y-4 p-4 border border-red-200 dark:border-red-800 rounded-md bg-red-50 dark:bg-red-900/20">
+                  <div>
+                    <h5 className="font-medium text-red-800 dark:text-red-200 mb-2">
+                      Confirm Account Deletion
+                    </h5>
+                    <p className="text-sm text-red-600 dark:text-red-300 mb-4">
+                      This action cannot be undone. All your data will be permanently deleted.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-red-800 dark:text-red-200 mb-2">
+                      Type "DELETE_ACCOUNT" to confirm:
+                    </label>
+                    <input
+                      type="text"
+                      value={deleteConfirmation}
+                      onChange={(e) => setDeleteConfirmation(e.target.value)}
+                      className="w-full px-3 py-2 border border-red-300 dark:border-red-700 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      placeholder="DELETE_ACCOUNT"
+                    />
+                  </div>
+                  
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={isDeleting || deleteConfirmation !== "DELETE_ACCOUNT"}
+                      className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                      {isDeleting ? "Deleting..." : "Delete Account"}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowDeleteConfirm(false);
+                        setDeleteConfirmation("");
+                      }}
+                      className="px-4 py-2 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

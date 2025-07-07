@@ -10,12 +10,14 @@ import PaymentSuccess from "../pages/PaymentSuccess";
 import { useAccess } from "../context/AccessContext";
 import UpgradePlan from "../pages/UpgradePlan";
 import Billing from "../pages/Billing";
+import Settings from "../pages/Settings";
+import FontSizeDemo from "../components/FontSizeDemo";
 // import UsecasePage from '../pages/UsecasePage';
 
 const AppRoutes: React.FC = () => {
   const { hasAccess } = useAccess();
   const location = useLocation();
-  const allowedWithoutAccess = ["/pricing", "/payment-success", "/logout"];
+  const allowedWithoutAccess = ["/pricing", "/payment-success", "/logout", "/font-demo"];
   if (!hasAccess && !allowedWithoutAccess.includes(location.pathname)) {
     return <Navigate to="/pricing" replace />;
   }
@@ -31,6 +33,8 @@ const AppRoutes: React.FC = () => {
       <Route path="/payment-success" element={<PaymentSuccess />} />
       <Route path="/upgrade" element={<UpgradePlan />} />
       <Route path="/billing" element={<Billing />} />
+      <Route path="/settings" element={<Settings />} />
+      <Route path="/font-demo" element={<FontSizeDemo />} />
     </Routes>
   );
 };

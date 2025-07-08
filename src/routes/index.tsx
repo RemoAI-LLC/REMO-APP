@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import Home from "../pages/Home";
 import Dashboard from "../pages/Dashboard";
 import SmartApply from "../pages/SmartApply";
@@ -7,28 +7,45 @@ import Usecases from "../pages/Usecases";
 import Integrations from "../pages/Integrations";
 import Pricing from "../pages/Pricing";
 import PaymentSuccess from "../pages/PaymentSuccess";
-import { useAccess } from "../context/AccessContext";
 import UpgradePlan from "../pages/UpgradePlan";
 import Billing from "../pages/Billing";
 import Settings from "../pages/Settings";
 import FontSizeDemo from "../components/FontSizeDemo";
-// import UsecasePage from '../pages/UsecasePage';
+import ProtectedRoute from "./ProtectedRoute";
 
 const AppRoutes: React.FC = () => {
-  const { hasAccess } = useAccess();
-  const location = useLocation();
-  const allowedWithoutAccess = ["/pricing", "/payment-success", "/logout", "/font-demo"];
-  if (!hasAccess && !allowedWithoutAccess.includes(location.pathname)) {
-    return <Navigate to="/pricing" replace />;
-  }
   return (
     <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/home" element={<Home />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/usecases" element={<Usecases />} />
-      <Route path="/SmartApply" element={<SmartApply />} />
-      <Route path="/integrations" element={<Integrations />} />
+      <Route path="/" element={
+        <ProtectedRoute>
+          <Home />
+        </ProtectedRoute>
+      } />
+      <Route path="/home" element={
+        <ProtectedRoute>
+          <Home />
+        </ProtectedRoute>
+      } />
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/usecases" element={
+        <ProtectedRoute>
+          <Usecases />
+        </ProtectedRoute>
+      } />
+      <Route path="/SmartApply" element={
+        <ProtectedRoute>
+          <SmartApply />
+        </ProtectedRoute>
+      } />
+      <Route path="/integrations" element={
+        <ProtectedRoute>
+          <Integrations />
+        </ProtectedRoute>
+      } />
       <Route path="/Pricing" element={<Pricing />} />
       <Route path="/payment-success" element={<PaymentSuccess />} />
       <Route path="/upgrade" element={<UpgradePlan />} />

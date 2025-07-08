@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaBell, FaCheckSquare, FaCalendarAlt, FaPlus, FaTrash, FaEdit, FaSync } from 'react-icons/fa';
 import { MdSchedule } from 'react-icons/md';
+import { usePrivy } from "@privy-io/react-auth";
 
 interface Reminder {
   id: string;
@@ -30,6 +31,8 @@ interface Meeting {
 }
 
 const Dashboard: React.FC = () => {
+  const { user } = usePrivy();
+  const userId = user?.id;
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [todos, setTodos] = useState<Todo[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
@@ -37,15 +40,8 @@ const Dashboard: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
   const [modalType, setModalType] = useState<'reminder' | 'todo' | 'meeting'>('reminder');
-  const [userId, setUserId] = useState<string>('');
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-  // Get user ID from localStorage or context
-  useEffect(() => {
-    const storedUserId = localStorage.getItem('userId') || 'test_user_123';
-    setUserId(storedUserId);
-  }, []);
 
   // Fetch data from API
   useEffect(() => {

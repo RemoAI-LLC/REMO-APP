@@ -55,7 +55,39 @@ const Settings: React.FC = () => {
     setIsDeleting(true);
     try {
       const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+      const stripeApiUrl = import.meta.env.VITE_STRIPE_API_URL || "http://localhost:3001";
+      const userEmail = user?.email?.address;
       
+      // Step 1: Cancel subscription first
+      if (userEmail) {
+        try {
+          console.log("Cancelling subscription for:", userEmail);
+          const subscriptionResponse = await fetch(`${stripeApiUrl}/api/cancel-subscription`, {
+            method: "POST",
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: userEmail
+            }),
+          });
+          
+          if (subscriptionResponse.ok) {
+            const subscriptionResult = await subscriptionResponse.json();
+            console.log("Subscription cancelled:", subscriptionResult);
+          } else {
+            const subscriptionError = await subscriptionResponse.json();
+            console.warn("Failed to cancel subscription:", subscriptionError);
+            // Continue with account deletion even if subscription cancellation fails
+          }
+        } catch (subscriptionError) {
+          console.error("Error cancelling subscription:", subscriptionError);
+          // Continue with account deletion even if subscription cancellation fails
+        }
+      }
+
+      // Step 2: Delete user account
+      console.log("Deleting account for user:", user?.id);
       const response = await fetch(`${API_BASE_URL}/account/delete`, {
         method: 'DELETE',
         headers: {
@@ -70,7 +102,7 @@ const Settings: React.FC = () => {
 
       if (response.ok) {
         const result = await response.json();
-        alert("Account deleted successfully. You will be logged out.");
+        alert("Account deleted successfully. Your subscription has been cancelled and you will be logged out.");
         
         // Logout and redirect to pricing page
         await logout();

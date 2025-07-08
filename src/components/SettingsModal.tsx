@@ -39,6 +39,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [emailConnected, setEmailConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [authStatus, setAuthStatus] = useState<any>(null);
+  const [showDeleteWarning, setShowDeleteWarning] = useState(false);
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -84,15 +85,43 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const handleDeleteAccount = async () => {
     if (!user?.id) return;
     
-    const confirmed = window.confirm(
-      "Are you sure you want to delete your account? This action cannot be undone and will permanently remove all your data."
-    );
-    
-    if (!confirmed) return;
+    // Show detailed warning modal instead of simple confirm
+    setShowDeleteWarning(true);
+  };
+
+  const confirmDeleteAccount = async () => {
+    if (!user?.id) return;
 
     setIsLoading(true);
     try {
-      // Call backend to delete user account
+      const stripeApiUrl = import.meta.env.VITE_STRIPE_API_URL || "http://localhost:3001";
+      const userEmail = user?.email?.address;
+      // Use new endpoint: DELETE /api/user-subscriptions/:email
+      if (userEmail) {
+        try {
+          console.log("Cancelling all subscriptions for:", userEmail);
+          const cancelSubsResponse = await fetch(`${stripeApiUrl}/api/user-subscriptions/${encodeURIComponent(userEmail)}`, {
+            method: "DELETE",
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
+          if (cancelSubsResponse.ok) {
+            const result = await cancelSubsResponse.json();
+            console.log("All subscriptions cancelled:", result);
+          } else {
+            const error = await cancelSubsResponse.json();
+            console.warn("Failed to cancel all subscriptions:", error);
+            // Continue with frontend account deletion even if backend fails
+          }
+        } catch (cancelError) {
+          console.error("Error cancelling all subscriptions:", cancelError);
+          // Continue with frontend account deletion even if backend fails
+        }
+      }
+
+      // Step 2: Delete user account in your own backend (if needed)
+      console.log("Deleting account for user:", user.id);
       const response = await fetch(`${API_BASE_URL}/account/delete`, {
         method: "DELETE",
         headers: {
@@ -107,10 +136,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       
       if (response.ok) {
         const result = await response.json();
-        alert("Account deleted successfully. You will be logged out.");
+        alert("Account deleted successfully. Your subscription has been cancelled and you will be logged out.");
         // Logout user and redirect
         logout();
         onClose();
+        setShowDeleteWarning(false);
       } else {
         const error = await response.json();
         alert(`Failed to delete account: ${error.detail || 'Unknown error'}`);
@@ -120,6 +150,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       alert("Error deleting account. Please try again.");
     } finally {
       setIsLoading(false);
+      setShowDeleteWarning(false);
     }
   };
 
@@ -461,6 +492,65 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
+    <>
+      {/* Delete Account Warning Modal */}
+      {showDeleteWarning && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm" 
+            aria-hidden="true" 
+            onClick={() => setShowDeleteWarning(false)}
+          />
+          
+          <div className="relative bg-white dark:bg-gray-900 rounded-2xl p-8 max-w-md w-full mx-4 border border-red-200 dark:border-red-800 shadow-2xl">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <IoShield className="text-red-600 dark:text-red-400" size={32} />
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+                Delete Account
+              </h3>
+              
+              <div className="text-left space-y-4 mb-6">
+                <p className="text-gray-600 dark:text-gray-300">
+                  This action will permanently delete your account and all associated data. This cannot be undone.
+                </p>
+                
+                <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                  <h4 className="font-semibold text-red-800 dark:text-red-200 mb-2">What will happen:</h4>
+                  <ul className="text-sm text-red-700 dark:text-red-300 space-y-1">
+                    <li>• Your subscription will be cancelled immediately</li>
+                    <li>• All your conversations will be deleted</li>
+                    <li>• All your reminders and todos will be removed</li>
+                    <li>• Your Gmail connection will be disconnected</li>
+                    <li>• Your account profile will be permanently deleted</li>
+                    <li>• You will be logged out immediately</li>
+                  </ul>
+                </div>
+              </div>
+              
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowDeleteWarning(false)}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDeleteAccount}
+                  disabled={isLoading}
+                  className="flex-1 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-red-500 to-red-600 border border-transparent rounded-lg hover:from-red-600 hover:to-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? "Deleting..." : "Delete Account"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Main Settings Modal */}
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Enhanced overlay with better glass morphism */}
       <div 
@@ -562,6 +652,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

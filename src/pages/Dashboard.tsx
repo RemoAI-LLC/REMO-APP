@@ -59,126 +59,52 @@ const Dashboard: React.FC = () => {
         const remindersResponse = await fetch(`${API_BASE_URL}/user/${userId}/reminders`);
         if (remindersResponse.ok) {
           const remindersData = await remindersResponse.json();
-          setReminders(remindersData.reminders || []);
+          setReminders(
+            (remindersData.reminders || []).map((r: any) => ({
+              id: r.reminder_id || r.id,
+              description: r.title || r.description || '',
+              time: r.reminding_time ? new Date(r.reminding_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+              date: r.reminding_time ? new Date(r.reminding_time).toISOString().split('T')[0] : '',
+              completed: r.status === 'done' || r.completed === true
+            }))
+          );
         }
 
         // Fetch todos
         const todosResponse = await fetch(`${API_BASE_URL}/user/${userId}/todos`);
         if (todosResponse.ok) {
           const todosData = await todosResponse.json();
-          setTodos(todosData.todos || []);
+          setTodos(
+            (todosData.todos || []).map((t: any) => ({
+              id: t.todo_id || t.id,
+              task: t.title || t.task || '',
+              priority: t.priority || 'medium',
+              due_date: t.due_date || t.created_at ? new Date(t.created_at).toISOString().split('T')[0] : '',
+              completed: t.status === 'done' || t.completed === true,
+              category: t.category || ''
+            }))
+          );
         }
 
         // Fetch meetings
         const meetingsResponse = await fetch(`${API_BASE_URL}/user/${userId}/meetings`);
         if (meetingsResponse.ok) {
           const meetingsData = await meetingsResponse.json();
-          setMeetings(meetingsData.meetings || []);
-        }
-
-        // If no data from API, use mock data for demonstration
-        if (!reminders.length && !todos.length && !meetings.length) {
-          setReminders([
-            {
-              id: '1',
-              description: 'Team meeting at 10 AM',
-              time: '10:00',
-              date: '2024-01-15',
-              completed: false
-            },
-            {
-              id: '2',
-              description: 'Submit project report',
-              time: '17:00',
-              date: '2024-01-15',
-              completed: true
-            },
-            {
-              id: '3',
-              description: 'Call client',
-              time: '14:30',
-              date: '2024-01-16',
-              completed: false
-            }
-          ]);
-
-          setTodos([
-            {
-              id: '1',
-              task: 'Review project documentation',
-              priority: 'high',
-              due_date: '2024-01-15',
-              completed: false,
-              category: 'work'
-            },
-            {
-              id: '2',
-              task: 'Update portfolio',
-              priority: 'medium',
-              due_date: '2024-01-17',
-              completed: false,
-              category: 'personal'
-            },
-            {
-              id: '3',
-              task: 'Buy groceries',
-              priority: 'low',
-              completed: true,
-              category: 'personal'
-            }
-          ]);
-
-          setMeetings([
-            {
-              id: '1',
-              subject: 'Weekly Team Standup',
-              start_time: '2024-01-15T10:00:00Z',
-              end_time: '2024-01-15T10:30:00Z',
-              attendees: ['john@example.com', 'jane@example.com'],
-              location: 'Conference Room A'
-            },
-            {
-              id: '2',
-              subject: 'Client Presentation',
-              start_time: '2024-01-16T14:00:00Z',
-              end_time: '2024-01-16T15:00:00Z',
-              attendees: ['client@example.com'],
-              location: 'Virtual Meeting'
-            }
-          ]);
+          setMeetings(
+            (meetingsData.meetings || []).map((m: any) => ({
+              id: m.email_id || m.meeting_id || m.id,
+              subject: m.subject || '',
+              start_time: m.date && m.time ? new Date(`${m.date}T${m.time}`).toISOString() : m.start_time || '',
+              end_time: m.end_time || '', // If available, otherwise you may want to calculate from duration
+              attendees: m.attendees || [],
+              location: m.location || '',
+              description: m.body || m.description || ''
+            }))
+          );
         }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        // Use mock data as fallback
-        setReminders([
-          {
-            id: '1',
-            description: 'Team meeting at 10 AM',
-            time: '10:00',
-            date: '2024-01-15',
-            completed: false
-          }
-        ]);
-        setTodos([
-          {
-            id: '1',
-            task: 'Review project documentation',
-            priority: 'high',
-            due_date: '2024-01-15',
-            completed: false,
-            category: 'work'
-          }
-        ]);
-        setMeetings([
-          {
-            id: '1',
-            subject: 'Weekly Team Standup',
-            start_time: '2024-01-15T10:00:00Z',
-            end_time: '2024-01-15T10:30:00Z',
-            attendees: ['john@example.com', 'jane@example.com'],
-            location: 'Conference Room A'
-          }
-        ]);
+        // Optionally show an error message to the user
       } finally {
         setLoading(false);
       }
@@ -232,21 +158,48 @@ const Dashboard: React.FC = () => {
       const remindersResponse = await fetch(`${API_BASE_URL}/user/${userId}/reminders`);
       if (remindersResponse.ok) {
         const remindersData = await remindersResponse.json();
-        setReminders(remindersData.reminders || []);
+        setReminders(
+          (remindersData.reminders || []).map((r: any) => ({
+            id: r.reminder_id || r.id,
+            description: r.title || r.description || '',
+            time: r.reminding_time ? new Date(r.reminding_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+            date: r.reminding_time ? new Date(r.reminding_time).toISOString().split('T')[0] : '',
+            completed: r.status === 'done' || r.completed === true
+          }))
+        );
       }
 
       // Fetch todos
       const todosResponse = await fetch(`${API_BASE_URL}/user/${userId}/todos`);
       if (todosResponse.ok) {
         const todosData = await todosResponse.json();
-        setTodos(todosData.todos || []);
+        setTodos(
+          (todosData.todos || []).map((t: any) => ({
+            id: t.todo_id || t.id,
+            task: t.title || t.task || '',
+            priority: t.priority || 'medium',
+            due_date: t.due_date || t.created_at ? new Date(t.created_at).toISOString().split('T')[0] : '',
+            completed: t.status === 'done' || t.completed === true,
+            category: t.category || ''
+          }))
+        );
       }
 
       // Fetch meetings
       const meetingsResponse = await fetch(`${API_BASE_URL}/user/${userId}/meetings`);
       if (meetingsResponse.ok) {
         const meetingsData = await meetingsResponse.json();
-        setMeetings(meetingsData.meetings || []);
+        setMeetings(
+          (meetingsData.meetings || []).map((m: any) => ({
+            id: m.email_id || m.meeting_id || m.id,
+            subject: m.subject || '',
+            start_time: m.date && m.time ? new Date(`${m.date}T${m.time}`).toISOString() : m.start_time || '',
+            end_time: m.end_time || '', // If available, otherwise you may want to calculate from duration
+            attendees: m.attendees || [],
+            location: m.location || '',
+            description: m.body || m.description || ''
+          }))
+        );
       }
     } catch (error) {
       console.error('Error refreshing dashboard data:', error);

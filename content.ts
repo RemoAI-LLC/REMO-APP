@@ -147,6 +147,15 @@ const content: Record<string, LanguageContent> = {
           darkImg: RemaindersDark,
           size: "normal",
         },
+        {
+          title: "Data Analyst AI",
+          desc: "Upload Excel files and get instant data analysis, plots, forecasts, and downloadable reports—just like a real data analyst!",
+          learnmore: "Try it now →",
+          redirectUrl: "/#/data-analyst",
+          img: Foodorder,
+          darkImg: FoodOrderDark,
+          size: "normal",
+        },
       ],
     },
     blogs: {

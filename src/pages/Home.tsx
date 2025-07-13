@@ -7,6 +7,7 @@ import {
   IoImage,
   IoVideocam,
   IoPlayCircle,
+  IoDocument,
 } from "react-icons/io5";
 import { BiDotsHorizontalRounded } from "react-icons/bi";
 
@@ -20,13 +21,14 @@ import logo from "../assets/MainLogo.png";
 import { Link } from "react-router-dom";
 import { RotateWords } from "../components/RotateWords";
 import ScheduleMeetingForm from "../components/ScheduleMeetingForm";
+import DataAnalysisDisplay from "../components/DataAnalysisDisplay";
 
 const placeholderText = "Hi I'm Remo! Your Personal AI Assistant";
 
 // Backend API configuration
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://remo-server.onrender.com" ||
+  // "https://remo-server.onrender.com" ||
   "http://localhost:8000";
 
 // Type declarations for Web Speech API
@@ -58,6 +60,14 @@ interface Message {
     size: number;
     type: string;
     url?: string;
+  };
+  dataAnalysis?: {
+    summary: string;
+    description: Record<string, any>;
+    plots?: Record<string, string>;
+    forecast?: any;
+    report_id?: string;
+    created_at?: string;
   };
 }
 
@@ -488,16 +498,61 @@ const Home: React.FC = () => {
         return;
       }
 
-      // Prepare form data for file upload
-      const formData = new FormData();
-      formData.append("message", inputText);
-      if (selectedFile) {
-        // formData.append("file", selectedFile);
-      }
-      if (userId) {
-        formData.append("user_id", userId);
+      // Check for data analysis intent and file
+      const isDataAnalysis =
+        inputText.toLowerCase().includes("analyze data") ||
+        inputText.toLowerCase().includes("excel analysis") ||
+        inputText.toLowerCase().includes("data analyst") ||
+        inputText.toLowerCase().includes("analyze excel");
+      if (isDataAnalysis && selectedFile) {
+        const formData = new FormData();
+        formData.append("message", inputText);
+        formData.append("file", selectedFile);
+        if (userId) {
+          formData.append("user_id", userId);
+        }
+        const response = await fetch(`${API_BASE_URL}/chat`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!response.ok) {
+          throw new Error("Failed to get response from Remo");
+        }
+        const data = await response.json();
+        // Handle /chat API response
+        if (data.response) {
+          let parsedResponse = null;
+          try {
+            let jsonString = data.response
+              .replace(/'/g, '"')
+              .replace(/\bNone\b/g, 'null')
+              .replace(/\bTrue\b/g, 'true')
+              .replace(/\bFalse\b/g, 'false');
+            parsedResponse = JSON.parse(jsonString);
+          } catch (e) {
+            console.error("Failed to parse response:", e);
+            parsedResponse = data.response;
+          }
+
+          // Create assistant message with data analysis results
+          const assistantMessage: Message = {
+            role: "assistant",
+            content: "Here's your data analysis results:",
+            timestamp: new Date(),
+            dataAnalysis: {
+              summary: parsedResponse.summary || "Data analysis complete.",
+              description: parsedResponse.description || {},
+              plots: parsedResponse.plots || {},
+              forecast: parsedResponse.forecast || null,
+              report_id: parsedResponse.report_id,
+              created_at: parsedResponse.created_at,
+            },
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+        }
       }
 
+      // Prepare JSON for normal chat
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
         headers: {
@@ -790,6 +845,36 @@ const Home: React.FC = () => {
         alert("File size must be less than 10MB");
         return;
       }
+
+      // Validate file type
+      const allowedTypes = [
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/plain",
+        "image/jpeg",
+        "image/jpg",
+        "image/png",
+        "image/gif",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel.sheet.macroEnabled.12",
+        "application/vnd.ms-excel.sheet.binary.macroEnabled.12",
+        "text/csv",
+      ];
+
+      const fileExtension = file.name.toLowerCase().split(".").pop();
+      const isExcelFile = ["xls", "xlsx", "xlsm", "xlsb", "csv"].includes(
+        fileExtension || ""
+      );
+
+      if (!allowedTypes.includes(file.type) && !isExcelFile) {
+        alert(
+          "Please select a valid file type: PDF, Word, Text, Image, or Excel files"
+        );
+        return;
+      }
+
       setSelectedFile(file);
     }
   };
@@ -828,6 +913,33 @@ const Home: React.FC = () => {
 
   const cleanUrl = (url: string) => url.replace(/["']$/, "");
 
+  // Helper function to get file icon based on file type
+  const getFileIcon = (fileName: string) => {
+    const extension = fileName.toLowerCase().split(".").pop();
+    switch (extension) {
+      case "pdf":
+        return <IoDocument size={16} />;
+      case "doc":
+      case "docx":
+        return <IoDocument size={16} />;
+      case "xls":
+      case "xlsx":
+      case "xlsm":
+      case "xlsb":
+      case "csv":
+        return <IoDocument size={16} />;
+      case "jpg":
+      case "jpeg":
+      case "png":
+      case "gif":
+        return <IoImage size={16} />;
+      case "txt":
+        return <IoDocument size={16} />;
+      default:
+        return <IoAttach size={16} />;
+    }
+  };
+
   const InputBox = (
     <form onSubmit={handleSendMessage} className="w-full p-6 max-w-3xl mx-auto">
       <div className="relative bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 px-6 py-4">
@@ -836,10 +948,9 @@ const Home: React.FC = () => {
           <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <IoAttach
-                  className="text-blue-600 dark:text-blue-400"
-                  size={16}
-                />
+                <div className="text-blue-600 dark:text-blue-400">
+                  {getFileIcon(selectedFile.name)}
+                </div>
                 <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
                   {selectedFile.name}
                 </span>
@@ -895,7 +1006,7 @@ const Home: React.FC = () => {
           type="file"
           onChange={handleFileSelect}
           className="hidden"
-          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif"
+          accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.xls,.xlsx,.xlsm,.xlsb,.csv"
         />
 
         {/* Icons in bottom-left corner - Create options */}
@@ -1045,13 +1156,13 @@ const Home: React.FC = () => {
               onClick={() => fileInputRef.current?.click()}
               disabled={isLoading}
               className="p-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-300 rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
-              title="Attach file"
+              title="Attach file (PDF, Word, Excel, Images)"
             >
               <IoAttach size={18} />
             </button>
             {/* Tooltip */}
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
-              Attach file
+              Attach file (PDF, Word, Excel, Images)
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
             </div>
           </div>
@@ -1192,6 +1303,23 @@ const Home: React.FC = () => {
                     >
                       {message.role === "assistant" ? (
                         (() => {
+                          // Data Analysis Display
+                          if (message.dataAnalysis) {
+                            return (
+                              <div className="pr-8 space-y-4">
+                                <div
+                                  className="text-base leading-relaxed"
+                                  dangerouslySetInnerHTML={{
+                                    __html: linkify(
+                                      formatMarkdown(message.content)
+                                    ),
+                                  }}
+                                />
+                                <DataAnalysisDisplay data={message.dataAnalysis} />
+                              </div>
+                            );
+                          }
+                          
                           // Bedrock base64 image/video support
                           const { imageBase64, videoBase64 } =
                             extractBedrockMedia(message.content);

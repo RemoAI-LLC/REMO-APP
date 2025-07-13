@@ -7,6 +7,11 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
   const location = useLocation();
   const { hasAccess } = checkAccess();
 
+  // Temporarily allow access to data-analyst for testing
+  if (location.pathname === '/data-analyst') {
+    return <>{children}</>;
+  }
+
   if (!hasAccess) {
     return <Navigate to="/pricing" replace state={{ from: location }} />;
   }

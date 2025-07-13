@@ -5,7 +5,7 @@ import { useAccess } from "../context/AccessContext";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
-  "https://remo-server.onrender.com" || // Render production
+  // "https://remo-server.onrender.com" || // Render production
   "http://localhost:8000"; // local
 
 const STRIPE_BACKEND_URL =
@@ -20,7 +20,10 @@ const isSubscriptionActive = (status: string): boolean => {
 };
 
 // Helper function to get subscription status message
-const getSubscriptionStatusMessage = (status: string, type: string | null): string => {
+const getSubscriptionStatusMessage = (
+  status: string,
+  type: string | null
+): string => {
   switch (status) {
     case "active":
       return "Your subscription is active!";
@@ -103,7 +106,8 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
         .then((data) => {
           setCheckingAccess(false);
           // Only set access state, never show error UI
-          const hasValidAccess = data.hasAccess && isSubscriptionActive(data.status);
+          const hasValidAccess =
+            data.hasAccess && isSubscriptionActive(data.status);
           setHasAccess(hasValidAccess);
           setSubscription(data); // Store the full subscription data
           // Do not redirect or show error here; let ProtectedRoute handle it
@@ -125,7 +129,16 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
         }),
       }).catch(() => {});
     }
-  }, [authenticated, ready, userId, userEmail, navigate, location.pathname, setHasAccess, setSubscription]);
+  }, [
+    authenticated,
+    ready,
+    userId,
+    userEmail,
+    navigate,
+    location.pathname,
+    setHasAccess,
+    setSubscription,
+  ]);
 
   // Show loading state
   if (!ready || checkingAccess) {
@@ -147,7 +160,9 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
       <div className="h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-100">
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Login Failed</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Login Failed
+          </h2>
           <p className="text-red-500 mb-6">{loginError}</p>
           <button
             onClick={() => {

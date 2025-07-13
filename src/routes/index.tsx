@@ -12,6 +12,7 @@ import Billing from "../pages/Billing";
 import Settings from "../pages/Settings";
 import FontSizeDemo from "../components/FontSizeDemo";
 import ProtectedRoute from "./ProtectedRoute";
+import DataAnalystUpload from "../components/DataAnalystUpload";
 
 const AppRoutes: React.FC = () => {
   return (
@@ -52,6 +53,11 @@ const AppRoutes: React.FC = () => {
       <Route path="/billing" element={<Billing />} />
       <Route path="/settings" element={<Settings />} />
       <Route path="/font-demo" element={<FontSizeDemo />} />
+      <Route path="/data-analyst" element={
+        <ProtectedRoute>
+          <DataAnalystUpload />
+        </ProtectedRoute>
+      } />
     </Routes>
   );
 };

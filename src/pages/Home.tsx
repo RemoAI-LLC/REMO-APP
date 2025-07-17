@@ -242,6 +242,22 @@ const Home: React.FC = () => {
   const userId = user?.id;
 
   // Function to check email auth status and fetch google email
+  const checkApiHealth = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/health`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      console.log("API Health Check:", response.status, response.ok);
+      return response.ok;
+    } catch (error) {
+      console.error("API Health Check Failed:", error);
+      return false;
+    }
+  };
+
   const checkEmailAuthStatus = async () => {
     if (!userId) return;
     try {
@@ -258,6 +274,7 @@ const Home: React.FC = () => {
   // Check email status on mount and when userId changes
   useEffect(() => {
     checkEmailAuthStatus();
+    checkApiHealth(); // Check API health on mount
   }, [userId]);
 
   // Initialize speech recognition
@@ -461,15 +478,19 @@ const Home: React.FC = () => {
     e.preventDefault();
     if (!inputText.trim() && !selectedFile) return;
 
+    // Store the input text before clearing it
+    const currentInputText = inputText.trim();
+    const currentSelectedFile = selectedFile;
+
     const userMessage: Message = {
       role: "user",
-      content: inputText.trim(),
+      content: currentInputText,
       timestamp: new Date(),
-      ...(selectedFile && {
+      ...(currentSelectedFile && {
         file: {
-          name: selectedFile.name,
-          size: selectedFile.size,
-          type: selectedFile.type,
+          name: currentSelectedFile.name,
+          size: currentSelectedFile.size,
+          type: currentSelectedFile.type,
         },
       }),
     };
@@ -484,7 +505,7 @@ const Home: React.FC = () => {
 
     try {
       // Check for email intent
-      const emailIntent = detectEmailIntent(inputText);
+      const emailIntent = detectEmailIntent(currentInputText);
       if (emailIntent && !emailConnected) {
         setShowEmailSetup(true);
         setIsLoading(false);
@@ -492,7 +513,7 @@ const Home: React.FC = () => {
       }
 
       // Check for meeting scheduling intent
-      if (isScheduleMeetingIntent(inputText)) {
+      if (isScheduleMeetingIntent(currentInputText)) {
         setPendingMeetingForm(true);
         setIsLoading(false);
         return;
@@ -500,14 +521,26 @@ const Home: React.FC = () => {
 
       // Check for data analysis intent and file
       const isDataAnalysis =
-        inputText.toLowerCase().includes("analyze data") ||
-        inputText.toLowerCase().includes("excel analysis") ||
-        inputText.toLowerCase().includes("data analyst") ||
-        inputText.toLowerCase().includes("analyze excel");
-      if (isDataAnalysis && selectedFile) {
+        currentInputText.toLowerCase().includes("analyze data") ||
+        currentInputText.toLowerCase().includes("excel analysis") ||
+        currentInputText.toLowerCase().includes("data analyst") ||
+        currentInputText.toLowerCase().includes("analyze excel");
+      
+      if (isDataAnalysis && !currentSelectedFile) {
+        const errorMessage: Message = {
+          role: "assistant",
+          content: "📊 I detected you want to analyze data, but no file was attached. Please upload an Excel file (xls, xlsx, xlsm, xlsb, csv) and try again.",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+        setIsLoading(false);
+        return;
+      }
+      
+      if (isDataAnalysis && currentSelectedFile) {
         const formData = new FormData();
-        formData.append("message", inputText);
-        formData.append("file", selectedFile);
+        formData.append("message", currentInputText);
+        formData.append("file", currentSelectedFile);
         if (userId) {
           formData.append("user_id", userId);
         }
@@ -516,7 +549,9 @@ const Home: React.FC = () => {
           body: formData,
         });
         if (!response.ok) {
-          throw new Error("Failed to get response from Remo");
+          const errorText = await response.text();
+          console.error("Data analysis API error:", response.status, errorText);
+          throw new Error(`Data analysis failed: ${response.status} ${response.statusText}`);
         }
         const data = await response.json();
         // Handle /chat API response
@@ -549,27 +584,82 @@ const Home: React.FC = () => {
             },
           };
           setMessages((prev) => [...prev, assistantMessage]);
+          setIsLoading(false);
+          return; // Exit early after data analysis
         }
       }
 
       // Prepare JSON for normal chat
+      const messageText = currentInputText;
+      
+      // Debug logging
+      console.log("Input text before processing:", currentInputText);
+      console.log("Trimmed message text:", messageText);
+      console.log("Message length:", messageText.length);
+      
+      const requestBody = {
+        message: messageText,
+        conversation_history: messages.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+        user_id: userId || null,
+        file: currentSelectedFile ? {
+          name: currentSelectedFile.name,
+          size: currentSelectedFile.size,
+          type: currentSelectedFile.type,
+        } : null,
+      };
+      
+      // Validate request body
+      if (!requestBody.message || requestBody.message.length === 0) {
+        throw new Error("Message cannot be empty");
+      }
+      
+      console.log("Sending normal chat request:", {
+        url: `${API_BASE_URL}/chat`,
+        body: requestBody
+      });
+      
+      // Log the request details
+      console.log("Sending form data request with message:", requestBody.message);
+      if (currentSelectedFile) {
+        console.log("File attached:", currentSelectedFile.name, "Size:", currentSelectedFile.size);
+      }
+      
+      // Create FormData for the request
+      const formData = new FormData();
+      formData.append("message", requestBody.message);
+      formData.append("conversation_history", JSON.stringify(requestBody.conversation_history));
+      if (requestBody.user_id) {
+        formData.append("user_id", requestBody.user_id);
+      }
+      
+      // Add file if present
+      if (currentSelectedFile) {
+        // Use the actual File object
+        formData.append("file", currentSelectedFile);
+      }
+      
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: inputText,
-          conversation_history: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          user_id: userId,
-        }),
+        body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Failed to get response from Remo");
+        const errorText = await response.text();
+        console.error("Normal chat API error:", response.status, errorText);
+        
+        // Try to parse error response for more details
+        let errorDetails = "";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorDetails = errorJson.detail || errorJson.message || errorJson.error || "";
+        } catch (e) {
+          errorDetails = errorText;
+        }
+        
+        throw new Error(`Chat request failed: ${response.status} ${response.statusText}${errorDetails ? ` - ${errorDetails}` : ''}`);
       }
 
       const data = await response.json();
@@ -583,9 +673,25 @@ const Home: React.FC = () => {
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error("Error sending message:", error);
+      
+      let errorContent = "Sorry, I encountered an error. Please try again.";
+      
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes("Failed to fetch")) {
+          errorContent = "Unable to connect to the server. Please check your internet connection and try again.";
+        } else if (error.message.includes("422")) {
+          errorContent = "The server couldn't process your request. This might be due to invalid data format. Please try again.";
+        } else if (error.message.includes("500")) {
+          errorContent = "Server error occurred. Please try again later.";
+        } else if (error.message.includes("401") || error.message.includes("403")) {
+          errorContent = "Authentication error. Please refresh the page and try again.";
+        }
+      }
+      
       const errorMessage: Message = {
         role: "assistant",
-        content: "Sorry, I encountered an error. Please try again.",
+        content: errorContent,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -633,19 +739,21 @@ const Home: React.FC = () => {
 
     try {
       console.log("Sending voice message to API:", voiceText);
+      
+      // Create FormData for voice message
+      const formData = new FormData();
+      formData.append("message", voiceText);
+      formData.append("conversation_history", JSON.stringify(messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }))));
+      if (userId) {
+        formData.append("user_id", userId);
+      }
+      
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: voiceText,
-          conversation_history: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          user_id: userId, // Include user ID for user-specific functionality
-        }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -770,19 +878,20 @@ const Home: React.FC = () => {
     setIsLoading(true);
 
     try {
+      // Create FormData for meeting scheduling
+      const formData = new FormData();
+      formData.append("message", detailsMsg);
+      formData.append("conversation_history", JSON.stringify(messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }))));
+      if (userId) {
+        formData.append("user_id", userId);
+      }
+      
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: detailsMsg,
-          conversation_history: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          user_id: userId,
-        }),
+        body: formData,
       });
 
       if (!response.ok) {

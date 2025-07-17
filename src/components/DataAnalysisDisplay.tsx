@@ -220,9 +220,20 @@ const DataAnalysisDisplay: React.FC<DataAnalysisDisplayProps> = ({ data }) => {
         {expandedSections.summary && (
           <div className="mt-3 p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="prose prose-sm dark:prose-invert max-w-none">
-              <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-mono bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                {data.summary}
-              </pre>
+              <div 
+                className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed"
+                dangerouslySetInnerHTML={{
+                  __html: data.summary
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-gray-900 dark:text-white">$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em class="text-gray-800 dark:text-gray-200">$1</em>')
+                    .replace(/📊/g, '<span class="text-2xl">📊</span>')
+                    .replace(/🔍/g, '<span class="text-2xl">🔍</span>')
+                    .replace(/💡/g, '<span class="text-2xl">💡</span>')
+                    .replace(/\n• /g, '<br>• ')
+                    .replace(/\n\n/g, '<br><br>')
+                    .replace(/\n/g, '<br>')
+                }}
+              />
             </div>
           </div>
         )}

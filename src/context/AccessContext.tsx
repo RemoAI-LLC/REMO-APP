@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState } from "react";
 
 interface StripeSubscription {
   hasAccess: boolean;
+  type: string | null;
   status: string;
   current_period_start: number | null;
   current_period_end: number | null;

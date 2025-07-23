@@ -48,7 +48,6 @@ const Integrations: React.FC = () => {
       const data = await response.json();
       if (data.success) {
         setEmailConnected(false);
-        setAuthStatus(null);
         // Optionally, show a toast or message
       } else {
         // Optionally, show an error message

@@ -727,95 +727,6 @@ const Home: React.FC = () => {
     checkEmailAuthStatus(); // Re-check status after modal closes
   };
 
-  const handleMeetingFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setMeetingForm({ ...meetingForm, [e.target.name]: e.target.value });
-  };
-
-  const handleMeetingFormSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setShowMeetingForm(false);
-
-    // Format meeting details as a structured message
-    const detailsMsg = `Schedule a meeting with ${meetingForm.attendees} on ${meetingForm.date} at ${meetingForm.time} about ${meetingForm.subject}. Duration: ${meetingForm.duration} minutes. Location: ${meetingForm.location}. Description: ${meetingForm.description}`;
-
-    // Add user message to chat
-    const userMessage: Message = {
-      role: "user",
-      content: detailsMsg,
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setIsLoading(true);
-
-    try {
-      const response = await fetch(`${API_BASE_URL}/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: detailsMsg,
-          conversation_history: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          user_id: userId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get response from Remo");
-      }
-
-      const data = await response.json();
-
-      const assistantMessage: Message = {
-        role: "assistant",
-        content: data.response,
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error("Error scheduling meeting:", error);
-
-      // Check if the error is due to missing Google authentication
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      const isAuthError =
-        errorMessage.includes("not authenticated") ||
-        errorMessage.includes("OAuth");
-
-      let errorContent =
-        "Sorry, I encountered an error while scheduling your meeting. Please try again.";
-
-      if (isAuthError) {
-        errorContent = `❌ **Google Calendar not connected!**\n\nTo schedule meetings with Google Calendar, you need to connect your Gmail account first.\n\nGo to the **Integrations** page to connect your Gmail account.`;
-      }
-
-      const errorMessageObj: Message = {
-        role: "assistant",
-        content: errorContent,
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, errorMessageObj]);
-    } finally {
-      setIsLoading(false);
-      // Reset form
-      setMeetingForm({
-        attendees: "",
-        subject: "",
-        date: "",
-        time: "",
-        duration: "60",
-        location: "",
-        description: "",
-      });
-    }
-  };
-
   // Handle file selection
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -876,13 +787,6 @@ const Home: React.FC = () => {
     } catch (err) {
       console.error("Failed to copy text: ", err);
     }
-  };
-
-  // Handle creation option selection
-  const handleCreationOption = (type: string) => {
-    setSelectedCreationType(type);
-    // For now, just update the placeholder text
-    console.log(`Selected creation type: ${type}`);
   };
 
   // Helper function to get file icon based on file type

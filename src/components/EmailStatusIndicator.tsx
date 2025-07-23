@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { FaEnvelope, FaEnvelopeOpen, FaEnvelopeOpenText, FaCog } from 'react-icons/fa';
+import React, { useState, useEffect } from "react";
+import { FaEnvelope, FaEnvelopeOpenText } from "react-icons/fa";
 
 interface EmailStatusIndicatorProps {
   userId: string;
@@ -18,7 +18,7 @@ const EmailStatusIndicator: React.FC<EmailStatusIndicatorProps> = ({
   userId,
   isConnected,
   onConnectClick,
-  onDisconnect
+  onDisconnect,
 }) => {
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,17 +34,20 @@ const EmailStatusIndicator: React.FC<EmailStatusIndicatorProps> = ({
   const checkAuthStatus = async () => {
     setIsLoading(true);
     try {
-      console.log('[DEBUG] EmailStatusIndicator checking auth status for userId:', userId);
+      console.log(
+        "[DEBUG] EmailStatusIndicator checking auth status for userId:",
+        userId
+      );
       const response = await fetch(`${API_BASE_URL}/auth/status/${userId}`);
       const data = await response.json();
-      console.log('[DEBUG] /auth/status response:', data);
+      console.log("[DEBUG] /auth/status response:", data);
       setAuthStatus(data);
     } catch (err) {
-      console.error('[DEBUG] Failed to check email auth status:', err);
+      console.error("[DEBUG] Failed to check email auth status:", err);
       setAuthStatus({
         authenticated: false,
         scopes: [],
-        message: 'Failed to check status'
+        message: "Failed to check status",
       });
     } finally {
       setIsLoading(false);
@@ -73,37 +76,55 @@ const EmailStatusIndicator: React.FC<EmailStatusIndicatorProps> = ({
               <FaEnvelopeOpenText className="text-green-600 dark:text-green-400 text-lg" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Gmail Connected</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">Email integration active</p>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Gmail Connected
+              </h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Email integration active
+              </p>
             </div>
           </div>
         </div>
-        
+
         <div className="space-y-3">
           <div className="bg-gray-50 dark:bg-gray-700 rounded-md p-3">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Connected Services:</h4>
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Connected Services:
+            </h4>
             <div className="space-y-1">
-              {authStatus.scopes.includes('https://www.googleapis.com/auth/gmail.modify') && (
+              {authStatus.scopes.includes(
+                "https://www.googleapis.com/auth/gmail.modify"
+              ) && (
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Send & manage emails</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    Send & manage emails
+                  </span>
                 </div>
               )}
-              {authStatus.scopes.includes('https://www.googleapis.com/auth/calendar') && (
+              {authStatus.scopes.includes(
+                "https://www.googleapis.com/auth/calendar"
+              ) && (
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Calendar access</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    Calendar access
+                  </span>
                 </div>
               )}
-              {authStatus.scopes.includes('https://www.googleapis.com/auth/calendar.events') && (
+              {authStatus.scopes.includes(
+                "https://www.googleapis.com/auth/calendar.events"
+              ) && (
                 <div className="flex items-center space-x-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-xs text-gray-600 dark:text-gray-400">Schedule meetings</span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400">
+                    Schedule meetings
+                  </span>
                 </div>
               )}
             </div>
           </div>
-          
+
           <div className="flex space-x-3">
             <button
               onClick={onConnectClick}
@@ -135,4 +156,4 @@ const EmailStatusIndicator: React.FC<EmailStatusIndicatorProps> = ({
   );
 };
 
-export default EmailStatusIndicator; 
+export default EmailStatusIndicator;

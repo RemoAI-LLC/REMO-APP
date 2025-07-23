@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import { useAccess } from "../context/AccessContext";
 import { usePrivy } from "@privy-io/react-auth";
-import { 
-  FaCreditCard, 
-  FaDownload, 
-  FaEnvelope, 
-  FaCalendarAlt,
+import {
+  FaCreditCard,
+  FaEnvelope,
   FaCheckCircle,
   FaTimesCircle,
   FaSpinner,
-  FaExternalLinkAlt
+  FaExternalLinkAlt,
 } from "react-icons/fa";
 
 interface BillingModalProps {
@@ -18,7 +16,11 @@ interface BillingModalProps {
   onSuccess: () => void;
 }
 
-const BillingModal: React.FC<BillingModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const BillingModal: React.FC<BillingModalProps> = ({
+  isOpen,
+  onClose,
+  onSuccess,
+}) => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,11 +45,14 @@ const BillingModal: React.FC<BillingModalProps> = ({ isOpen, onClose, onSuccess 
           ? "http://localhost:3001"
           : "https://stripe-backend-4ian.onrender.com");
 
-      const response = await fetch(`${STRIPE_BACKEND_URL}/api/send-portal-link`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim() }),
-      });
+      const response = await fetch(
+        `${STRIPE_BACKEND_URL}/api/send-portal-link`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: email.trim() }),
+        }
+      );
 
       const data = await response.json();
 
@@ -94,12 +99,16 @@ const BillingModal: React.FC<BillingModalProps> = ({ isOpen, onClose, onSuccess 
         {!success ? (
           <>
             <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Enter your email address to receive a secure link to manage your subscription.
+              Enter your email address to receive a secure link to manage your
+              subscription.
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   Email Address
                 </label>
                 <input
@@ -158,7 +167,8 @@ const BillingModal: React.FC<BillingModalProps> = ({ isOpen, onClose, onSuccess 
             {showPortalLink ? (
               <div className="space-y-4">
                 <p className="text-gray-600 dark:text-gray-400">
-                  Email delivery failed, but you can use the portal link directly:
+                  Email delivery failed, but you can use the portal link
+                  directly:
                 </p>
                 <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
                   <a
@@ -205,32 +215,38 @@ const BillingModal: React.FC<BillingModalProps> = ({ isOpen, onClose, onSuccess 
 
 const Billing: React.FC = () => {
   const { subscription } = useAccess();
-  const { user } = usePrivy();
   const [showModal, setShowModal] = useState(false);
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp * 1000).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(timestamp * 1000).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   const getPlanDetails = () => {
     if (!subscription) return null;
-    
+
     const planType = subscription.type;
-    const isYearly = planType.includes('Yearly');
-    const isBasic = planType.includes('Basic');
-    
+    if (!planType) return null;
+    const isYearly = planType.includes("Yearly");
+    const isBasic = planType.includes("Basic");
+
     return {
       name: planType,
       tier: isBasic ? "Basic" : "Premium",
       billing: isYearly ? "Yearly" : "Monthly",
-      price: isBasic 
-        ? (isYearly ? "$215.89/year" : "$19.99/month")
-        : (isYearly ? "$539.98/year" : "$49.99/month"),
-      nextBilling: subscription.current_period_end ? formatDate(subscription.current_period_end) : null
+      price: isBasic
+        ? isYearly
+          ? "$215.89/year"
+          : "$19.99/month"
+        : isYearly
+        ? "$539.98/year"
+        : "$49.99/month",
+      nextBilling: subscription.current_period_end
+        ? formatDate(subscription.current_period_end)
+        : null,
     };
   };
 
@@ -263,12 +279,16 @@ const Billing: React.FC = () => {
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
               Current Plan
             </h2>
-            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-              subscription?.status === 'active' 
-                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-            }`}>
-              {subscription?.status === 'active' ? 'Active' : subscription?.status}
+            <span
+              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                subscription?.status === "active"
+                  ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                  : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+              }`}
+            >
+              {subscription?.status === "active"
+                ? "Active"
+                : subscription?.status}
             </span>
           </div>
 
@@ -291,7 +311,7 @@ const Billing: React.FC = () => {
                   Next Billing Date
                 </h4>
                 <p className="text-gray-900 dark:text-white">
-                  {planDetails.nextBilling || 'N/A'}
+                  {planDetails.nextBilling || "N/A"}
                 </p>
               </div>
 
@@ -378,4 +398,4 @@ const Billing: React.FC = () => {
   );
 };
 
-export default Billing; 
+export default Billing;

@@ -22,7 +22,7 @@ interface SidebarProps {
   onClose?: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open }) => {
   const [hovering, setHovering] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -33,8 +33,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
     };
 
     handleResize(); // Set initial state
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleMouseEnter = () => {
@@ -78,9 +78,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
         <div
           className={`absolute left-0 top-0 z-10 transition-all duration-300`}
           style={{
-            width: shouldExpand ? '16rem' : '4rem', // w-64 or w-16
-            height: '4rem', // match logo section height (h-16)
-            background: 'inherit',
+            width: shouldExpand ? "16rem" : "4rem", // w-64 or w-16
+            height: "4rem", // match logo section height (h-16)
+            background: "inherit",
           }}
         />
         {/* Logo */}
@@ -120,7 +120,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
               </span>
             </Link>
             {/* Tooltip */}
-            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+            <div
+              className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
+                shouldExpand ? "hidden" : "block"
+              }`}
+            >
               Dashboard
               <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
             </div>
@@ -143,7 +147,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
               </span>
             </Link>
             {/* Tooltip */}
-            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+            <div
+              className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
+                shouldExpand ? "hidden" : "block"
+              }`}
+            >
               Explore Use cases
               <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
             </div>
@@ -166,7 +174,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
               </span>
             </Link>
             {/* Tooltip */}
-            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+            <div
+              className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
+                shouldExpand ? "hidden" : "block"
+              }`}
+            >
               Integrations
               <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
             </div>
@@ -191,7 +203,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
               </span>
             </Link>
             {/* Tooltip */}
-            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+            <div
+              className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
+                shouldExpand ? "hidden" : "block"
+              }`}
+            >
               Usage
               <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
             </div>
@@ -214,7 +230,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
               </span>
             </Link>
             {/* Tooltip */}
-            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+            <div
+              className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
+                shouldExpand ? "hidden" : "block"
+              }`}
+            >
               Billing
               <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
             </div>
@@ -239,7 +259,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
               </span>
             </button>
             {/* Tooltip */}
-            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+            <div
+              className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
+                shouldExpand ? "hidden" : "block"
+              }`}
+            >
               Settings
               <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
             </div>
@@ -264,7 +288,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
               </span>
             </a>
             {/* Tooltip */}
-            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+            <div
+              className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
+                shouldExpand ? "hidden" : "block"
+              }`}
+            >
               Documentation
               <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
             </div>
@@ -287,7 +315,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
               </span>
             </button>
             {/* Tooltip */}
-            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+            <div
+              className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
+                shouldExpand ? "hidden" : "block"
+              }`}
+            >
               Contact Us
               <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
             </div>
@@ -297,10 +329,13 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
             <ContactUsModal onClose={() => setContactModalOpen(false)} />
           )}
           {isSettingsModalOpen && (
-            <SettingsModal isOpen={isSettingsModalOpen} onClose={() => setSettingsModalOpen(false)} />
+            <SettingsModal
+              isOpen={isSettingsModalOpen}
+              onClose={() => setSettingsModalOpen(false)}
+            />
           )}
         </nav>
-        
+
         {/* Fixed Bottom Section */}
         <div className="absolute bottom-0 left-0 right-0 px-2 pb-4 space-y-2 flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-4 bg-white dark:bg-gray-800">
           {/* Theme Toggle */}
@@ -318,7 +353,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
               </span>
             </div>
             {/* Tooltip */}
-            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+            <div
+              className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
+                shouldExpand ? "hidden" : "block"
+              }`}
+            >
               Theme Toggle
               <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
             </div>
@@ -341,7 +380,11 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open, onClose }) => {
               </span>
             </Link>
             {/* Tooltip */}
-            <div className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${shouldExpand ? 'hidden' : 'block'}`}>
+            <div
+              className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
+                shouldExpand ? "hidden" : "block"
+              }`}
+            >
               Upgrade Plan
               <div className="absolute top-1/2 left-0 transform -translate-y-1/2 -translate-x-1 w-0 h-0 border-r-4 border-l-0 border-t-4 border-b-4 border-transparent border-r-gray-900"></div>
             </div>

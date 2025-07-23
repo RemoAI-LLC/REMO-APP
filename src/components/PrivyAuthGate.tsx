@@ -19,35 +19,6 @@ const isSubscriptionActive = (status: string): boolean => {
   return status === "active" || status === "trialing";
 };
 
-// Helper function to get subscription status message
-const getSubscriptionStatusMessage = (
-  status: string,
-  type: string | null
-): string => {
-  switch (status) {
-    case "active":
-      return "Your subscription is active!";
-    case "trialing":
-      return "You're currently on a trial period.";
-    case "past_due":
-      return "Your subscription payment is past due. Please update your payment method.";
-    case "canceled":
-      return "Your subscription has been cancelled.";
-    case "unpaid":
-      return "Your subscription payment failed. Please update your payment method.";
-    case "incomplete":
-      return "Your subscription setup is incomplete.";
-    case "incomplete_expired":
-      return "Your subscription setup has expired.";
-    case "not_found":
-      return "No subscription found. Please subscribe to access the app.";
-    case "none":
-      return "No active subscription found. Please subscribe to access the app.";
-    default:
-      return "Subscription status unknown. Please contact support.";
-  }
-};
-
 const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {

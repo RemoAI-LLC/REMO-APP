@@ -2,7 +2,6 @@ import React, { createContext, useContext, useState } from "react";
 
 interface StripeSubscription {
   hasAccess: boolean;
-  type: string | null;
   status: string;
   current_period_start: number | null;
   current_period_end: number | null;
@@ -34,7 +33,10 @@ const isSubscriptionActive = (status: string): boolean => {
 };
 
 // Helper function to get subscription status message
-const getSubscriptionStatusMessage = (status: string, type: string | null): string => {
+const getSubscriptionStatusMessage = (
+  status: string,
+  type: string | null
+): string => {
   switch (status) {
     case "active":
       return "Your subscription is active!";
@@ -59,29 +61,35 @@ const getSubscriptionStatusMessage = (status: string, type: string | null): stri
   }
 };
 
-export const AccessProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const AccessProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [hasAccess, setHasAccess] = useState(false);
-  const [subscription, setSubscription] = useState<StripeSubscription | null>(null);
-  
+  const [subscription, setSubscription] = useState<StripeSubscription | null>(
+    null
+  );
+
   const refreshAccess = () => {
     // This function can be used to manually refresh access status
     // It will be implemented by components that need to refresh access
     console.log("Access refresh requested");
   };
-  
+
   return (
-    <AccessContext.Provider value={{ 
-      hasAccess, 
-      subscription, 
-      setHasAccess, 
-      setSubscription,
-      isSubscriptionActive,
-      getSubscriptionStatusMessage,
-      refreshAccess
-    }}>
+    <AccessContext.Provider
+      value={{
+        hasAccess,
+        subscription,
+        setHasAccess,
+        setSubscription,
+        isSubscriptionActive,
+        getSubscriptionStatusMessage,
+        refreshAccess,
+      }}
+    >
       {children}
     </AccessContext.Provider>
   );
 };
 
-export const useAccess = () => useContext(AccessContext); 
+export const useAccess = () => useContext(AccessContext);

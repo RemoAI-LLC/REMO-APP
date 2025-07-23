@@ -14,7 +14,7 @@ interface AccessContextType {
   setHasAccess: (v: boolean) => void;
   setSubscription: (subscription: StripeSubscription | null) => void;
   isSubscriptionActive: (status: string) => boolean;
-  getSubscriptionStatusMessage: (status: string, type: string | null) => string;
+  getSubscriptionStatusMessage: (status: string) => string;
   refreshAccess: () => void;
 }
 
@@ -34,10 +34,7 @@ const isSubscriptionActive = (status: string): boolean => {
 };
 
 // Helper function to get subscription status message
-const getSubscriptionStatusMessage = (
-  status: string,
-  type: string | null
-): string => {
+const getSubscriptionStatusMessage = (status: string): string => {
   switch (status) {
     case "active":
       return "Your subscription is active!";

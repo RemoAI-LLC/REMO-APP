@@ -1,16 +1,17 @@
-import React from 'react';
-import { useAccess } from '../context/AccessContext';
+import React from "react";
+import { useAccess } from "../context/AccessContext";
 
 interface SubscriptionStatusProps {
   showDetails?: boolean;
   className?: string;
 }
 
-const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({ 
-  showDetails = false, 
-  className = "" 
+const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
+  showDetails = false,
+  className = "",
 }) => {
-  const { subscription, isSubscriptionActive, getSubscriptionStatusMessage } = useAccess();
+  const { subscription, isSubscriptionActive, getSubscriptionStatusMessage } =
+    useAccess();
 
   if (!subscription) {
     return (
@@ -23,7 +24,7 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   }
 
   const isActive = isSubscriptionActive(subscription.status);
-  const statusMessage = getSubscriptionStatusMessage(subscription.status, subscription.type);
+  const statusMessage = getSubscriptionStatusMessage(subscription.status);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -77,32 +78,44 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
     <div className={`space-y-2 ${className}`}>
       <div className="flex items-center space-x-2">
         <span className="text-sm">{getStatusIcon(subscription.status)}</span>
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(subscription.status)}`}>
-          {subscription.status.charAt(0).toUpperCase() + subscription.status.slice(1)}
+        <span
+          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+            subscription.status
+          )}`}
+        >
+          {subscription.status.charAt(0).toUpperCase() +
+            subscription.status.slice(1)}
         </span>
         {subscription.type && (
-          <span className="text-xs text-gray-500">
-            {subscription.type}
-          </span>
+          <span className="text-xs text-gray-500">{subscription.type}</span>
         )}
       </div>
-      
+
       {showDetails && (
         <div className="text-sm text-gray-600 space-y-1">
           <p>{statusMessage}</p>
-          
-          {subscription.current_period_start && subscription.current_period_end && (
-            <div className="text-xs text-gray-500">
-              <p>
-                Current period: {new Date(subscription.current_period_start * 1000).toLocaleDateString()} - {new Date(subscription.current_period_end * 1000).toLocaleDateString()}
-              </p>
-            </div>
-          )}
-          
+
+          {subscription.current_period_start &&
+            subscription.current_period_end && (
+              <div className="text-xs text-gray-500">
+                <p>
+                  Current period:{" "}
+                  {new Date(
+                    subscription.current_period_start * 1000
+                  ).toLocaleDateString()}{" "}
+                  -{" "}
+                  {new Date(
+                    subscription.current_period_end * 1000
+                  ).toLocaleDateString()}
+                </p>
+              </div>
+            )}
+
           {!isActive && (
             <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded-md">
               <p className="text-xs text-yellow-800">
-                ⚠️ Your subscription needs attention. Please check your payment method or contact support.
+                ⚠️ Your subscription needs attention. Please check your payment
+                method or contact support.
               </p>
             </div>
           )}
@@ -112,4 +125,4 @@ const SubscriptionStatus: React.FC<SubscriptionStatusProps> = ({
   );
 };
 
-export default SubscriptionStatus; 
+export default SubscriptionStatus;

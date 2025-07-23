@@ -1,12 +1,12 @@
-import { useAccess } from '../context/AccessContext';
-import { useNavigate } from 'react-router-dom';
+import { useAccess } from "../context/AccessContext";
+import { useNavigate } from "react-router-dom";
 
 export const useSubscriptionAccess = () => {
-  const { 
-    hasAccess, 
-    subscription, 
-    isSubscriptionActive, 
-    getSubscriptionStatusMessage 
+  const {
+    hasAccess,
+    subscription,
+    isSubscriptionActive,
+    getSubscriptionStatusMessage,
   } = useAccess();
   const navigate = useNavigate();
 
@@ -16,37 +16,37 @@ export const useSubscriptionAccess = () => {
     }
 
     const isActive = isSubscriptionActive(subscription.status);
-    const message = getSubscriptionStatusMessage(subscription.status, subscription.type);
+    const message = getSubscriptionStatusMessage(subscription.status);
 
     return { hasAccess: isActive, message };
   };
 
-  const requireAccess = (redirectTo: string = '/pricing') => {
+  const requireAccess = (redirectTo: string = "/pricing") => {
     const { hasAccess: currentAccess, message } = checkAccess();
-    
+
     if (!currentAccess) {
-      navigate(redirectTo, { 
-        state: { 
+      navigate(redirectTo, {
+        state: {
           subscriptionStatus: subscription?.status,
           subscriptionType: subscription?.type,
-          statusMessage: message
-        }
+          statusMessage: message,
+        },
       });
       return false;
     }
-    
+
     return true;
   };
 
   const getSubscriptionInfo = () => {
     if (!subscription) {
       return {
-        status: 'not_found',
+        status: "not_found",
         type: null,
         isActive: false,
-        message: 'No subscription found',
+        message: "No subscription found",
         periodStart: null,
-        periodEnd: null
+        periodEnd: null,
       };
     }
 
@@ -54,13 +54,13 @@ export const useSubscriptionAccess = () => {
       status: subscription.status,
       type: subscription.type,
       isActive: isSubscriptionActive(subscription.status),
-      message: getSubscriptionStatusMessage(subscription.status, subscription.type),
-      periodStart: subscription.current_period_start 
-        ? new Date(subscription.current_period_start * 1000) 
+      message: getSubscriptionStatusMessage(subscription.status),
+      periodStart: subscription.current_period_start
+        ? new Date(subscription.current_period_start * 1000)
         : null,
-      periodEnd: subscription.current_period_end 
-        ? new Date(subscription.current_period_end * 1000) 
-        : null
+      periodEnd: subscription.current_period_end
+        ? new Date(subscription.current_period_end * 1000)
+        : null,
     };
   };
 
@@ -71,6 +71,6 @@ export const useSubscriptionAccess = () => {
     requireAccess,
     getSubscriptionInfo,
     isSubscriptionActive,
-    getSubscriptionStatusMessage
+    getSubscriptionStatusMessage,
   };
-}; 
+};

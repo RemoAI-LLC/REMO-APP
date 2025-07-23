@@ -208,15 +208,6 @@ const Home: React.FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const [meetingForm, setMeetingForm] = useState({
-    attendees: "",
-    subject: "",
-    date: "",
-    time: "",
-    duration: "60",
-    location: "",
-    description: "",
-  });
 
   // Get user ID from Privy
   const userId = user?.id;

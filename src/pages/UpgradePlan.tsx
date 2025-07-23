@@ -15,14 +15,15 @@ const UpgradePlan: React.FC = () => {
   // Get current plan from subscription data
   const getCurrentPlan = (): Plan | null => {
     if (!subscription) return null;
-    
+
     const planType = subscription.type;
-    const isYearly = planType.includes('Yearly');
-    const isBasic = planType.includes('Basic');
-    
+    if (!planType) return null;
+    const isYearly = planType.includes("Yearly");
+    const isBasic = planType.includes("Basic");
+
     return {
       tier: isBasic ? "Basic" : "Premium",
-      billing: isYearly ? "Yearly" : "Monthly"
+      billing: isYearly ? "Yearly" : "Monthly",
     };
   };
 
@@ -72,20 +73,21 @@ const UpgradePlan: React.FC = () => {
     },
   ];
 
-  const renderPlanCard = (plan: typeof plans[number]) => {
+  const renderPlanCard = (plan: (typeof plans)[number]) => {
     const isCurrent =
       plan.tier === currentPlan.tier &&
       ((showYearly && currentPlan.billing === "Yearly") ||
         (!showYearly && currentPlan.billing === "Monthly"));
 
-    const isDowngrade =
-      currentPlan.tier === "Premium" && plan.tier === "Basic";
+    const isDowngrade = currentPlan.tier === "Premium" && plan.tier === "Basic";
 
     return (
       <div
         key={plan.tier}
         className={`flex flex-col rounded-xl p-6 border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 relative shadow-sm ${
-          isCurrent ? "border-2 border-blue-400 dark:border-blue-500 shadow-md" : "border-gray-200 dark:border-gray-700"
+          isCurrent
+            ? "border-2 border-blue-400 dark:border-blue-500 shadow-md"
+            : "border-gray-200 dark:border-gray-700"
         }`}
       >
         {isCurrent && (
@@ -104,14 +106,11 @@ const UpgradePlan: React.FC = () => {
             </span>
           )}
 
-        {!isCurrent &&
-          plan.tier === "Basic" &&
-          showYearly &&
-          !isCurrent && (
-            <span className="absolute top-4 right-4 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs font-bold px-2 py-1 rounded-full">
-              Save 10%
-            </span>
-          )}
+        {!isCurrent && plan.tier === "Basic" && showYearly && !isCurrent && (
+          <span className="absolute top-4 right-4 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 text-xs font-bold px-2 py-1 rounded-full">
+            Save 10%
+          </span>
+        )}
 
         <div className="flex flex-col items-center mb-4">
           {showYearly ? (
@@ -121,7 +120,9 @@ const UpgradePlan: React.FC = () => {
               </span>
               <span
                 className={`text-4xl font-bold ${
-                  plan.tier === "Premium" ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"
+                  plan.tier === "Premium"
+                    ? "text-green-600 dark:text-green-400"
+                    : "text-blue-600 dark:text-blue-400"
                 }`}
               >
                 {plan.yearlyPrice}
@@ -130,7 +131,9 @@ const UpgradePlan: React.FC = () => {
           ) : (
             <span
               className={`text-4xl font-bold ${
-                plan.tier === "Premium" ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"
+                plan.tier === "Premium"
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-blue-600 dark:text-blue-400"
               }`}
             >
               {plan.monthlyPrice}
@@ -143,7 +146,9 @@ const UpgradePlan: React.FC = () => {
             <li key={feature} className="flex items-center">
               <span
                 className={`mr-2 ${
-                  plan.tier === "Premium" ? "text-green-500 dark:text-green-400" : "text-blue-400 dark:text-blue-300"
+                  plan.tier === "Premium"
+                    ? "text-green-500 dark:text-green-400"
+                    : "text-blue-400 dark:text-blue-300"
                 }`}
               >
                 {plan.tier === "Premium" ? "✓" : "•"}
@@ -166,7 +171,9 @@ const UpgradePlan: React.FC = () => {
           >
             {isDowngrade
               ? `Switch to ${plan.name} (${showYearly ? "Yearly" : "Monthly"})`
-              : `Upgrade to ${plan.name} (${showYearly ? "Yearly" : "Monthly"})`}
+              : `Upgrade to ${plan.name} (${
+                  showYearly ? "Yearly" : "Monthly"
+                })`}
           </a>
         )}
       </div>
@@ -176,11 +183,10 @@ const UpgradePlan: React.FC = () => {
   return (
     <div className="min-h-screen bg-bg dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-20 px-4">
       <div className="max-w-6xl mx-auto text-center">
-        
-         
         <h2 className="text-4xl font-bold mb-4">Upgrade Your Plan</h2>
         <p className="text-gray-500 dark:text-gray-400 mb-8">
-          Unlock more features and get the most out of Remo AI by upgrading your plan.
+          Unlock more features and get the most out of Remo AI by upgrading your
+          plan.
         </p>
 
         {/* Current Plan Status */}
@@ -245,7 +251,10 @@ const UpgradePlan: React.FC = () => {
 
         <div className="mt-12 text-gray-400 dark:text-gray-500 text-sm">
           Have questions about upgrading?{" "}
-          <a href="mailto:hello@hireremo.com" className="text-blue-600 dark:text-blue-400 underline">
+          <a
+            href="mailto:hello@hireremo.com"
+            className="text-blue-600 dark:text-blue-400 underline"
+          >
             Contact support
           </a>
           .

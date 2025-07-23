@@ -160,26 +160,6 @@ function isScheduleMeetingIntent(text: string) {
   );
 }
 
-// Helper to extract video URLs from assistant message content
-function extractVideoUrls(content: string): string[] {
-  try {
-    const data = JSON.parse(content);
-    // Check for Gemini/Veo video response structure
-    if (
-      data?.result?.response?.generateVideoResponse?.generatedSamples &&
-      Array.isArray(data.result.response.generateVideoResponse.generatedSamples)
-    ) {
-      return data.result.response.generateVideoResponse.generatedSamples
-        .map((sample: any) => sample.video?.uri)
-        .filter((uri: string) => typeof uri === "string");
-    }
-    // Add more patterns if needed
-  } catch (e) {
-    // Not JSON, ignore
-  }
-  return [];
-}
-
 function extractBedrockMedia(content: string): {
   imageBase64?: string;
   videoBase64?: string;
@@ -525,9 +505,9 @@ const Home: React.FC = () => {
           try {
             let jsonString = data.response
               .replace(/'/g, '"')
-              .replace(/\bNone\b/g, 'null')
-              .replace(/\bTrue\b/g, 'true')
-              .replace(/\bFalse\b/g, 'false');
+              .replace(/\bNone\b/g, "null")
+              .replace(/\bTrue\b/g, "true")
+              .replace(/\bFalse\b/g, "false");
             parsedResponse = JSON.parse(jsonString);
           } catch (e) {
             console.error("Failed to parse response:", e);
@@ -902,16 +882,8 @@ const Home: React.FC = () => {
   const handleCreationOption = (type: string) => {
     setSelectedCreationType(type);
     // For now, just update the placeholder text
-    const placeholders = {
-      image: "Describe the image you want to create...",
-      video: "Describe the video you want to create...",
-      reel: "Describe the reel you want to create...",
-    };
-    // You can add logic here to handle the creation type
     console.log(`Selected creation type: ${type}`);
   };
-
-  const cleanUrl = (url: string) => url.replace(/["']$/, "");
 
   // Helper function to get file icon based on file type
   const getFileIcon = (fileName: string) => {
@@ -1315,11 +1287,13 @@ const Home: React.FC = () => {
                                     ),
                                   }}
                                 />
-                                <DataAnalysisDisplay data={message.dataAnalysis} />
+                                <DataAnalysisDisplay
+                                  data={message.dataAnalysis}
+                                />
                               </div>
                             );
                           }
-                          
+
                           // Bedrock base64 image/video support
                           const { imageBase64, videoBase64 } =
                             extractBedrockMedia(message.content);

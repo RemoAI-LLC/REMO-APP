@@ -11,7 +11,6 @@ const Integrations: React.FC = () => {
   const [showEmailSetup, setShowEmailSetup] = useState(false);
   const [emailConnected, setEmailConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [authStatus, setAuthStatus] = useState<any>(null);
 
   // Check authentication status on component mount and when userId changes
   useEffect(() => {
@@ -25,7 +24,6 @@ const Integrations: React.FC = () => {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/status/${userId}`);
       const data = await response.json();
-      setAuthStatus(data);
       setEmailConnected(data.authenticated);
     } catch (error) {
       console.error("Error checking auth status:", error);
@@ -115,7 +113,6 @@ const Integrations: React.FC = () => {
             userId={userId}
           />
         )}
-       
       </div>
       {!userId && (
         <div className="text-yellow-500 dark:text-yellow-400 text-center mt-6 text-sm">

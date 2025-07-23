@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { useAccess } from "../context/AccessContext";
-import { usePrivy } from "@privy-io/react-auth";
 import {
   FaCreditCard,
   FaEnvelope,

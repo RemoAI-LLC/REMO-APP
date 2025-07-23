@@ -1,6 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { FaBell, FaCheckSquare, FaCalendarAlt, FaPlus, FaTrash, FaEdit, FaSync } from 'react-icons/fa';
-import { MdSchedule } from 'react-icons/md';
+import React, { useState, useEffect } from "react";
+import {
+  FaBell,
+  FaCheckSquare,
+  FaCalendarAlt,
+  FaPlus,
+  FaTrash,
+  FaEdit,
+  FaSync,
+} from "react-icons/fa";
+import { MdSchedule } from "react-icons/md";
 import { usePrivy } from "@privy-io/react-auth";
 
 interface Reminder {
@@ -14,7 +22,7 @@ interface Reminder {
 interface Todo {
   id: string;
   task: string;
-  priority: 'high' | 'medium' | 'low';
+  priority: "high" | "medium" | "low";
   due_date?: string;
   completed: boolean;
   category?: string;
@@ -37,9 +45,10 @@ const Dashboard: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
-  const [modalType, setModalType] = useState<'reminder' | 'todo' | 'meeting'>('reminder');
+  const [modalType, setModalType] = useState<"reminder" | "todo" | "meeting">(
+    "reminder"
+  );
 
   const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -50,56 +59,75 @@ const Dashboard: React.FC = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        
+
         // Fetch reminders
-        const remindersResponse = await fetch(`${API_BASE_URL}/user/${userId}/reminders`);
+        const remindersResponse = await fetch(
+          `${API_BASE_URL}/user/${userId}/reminders`
+        );
         if (remindersResponse.ok) {
           const remindersData = await remindersResponse.json();
           setReminders(
             (remindersData.reminders || []).map((r: any) => ({
               id: r.reminder_id || r.id,
-              description: r.title || r.description || '',
-              time: r.reminding_time ? new Date(r.reminding_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-              date: r.reminding_time ? new Date(r.reminding_time).toISOString().split('T')[0] : '',
-              completed: r.status === 'done' || r.completed === true
+              description: r.title || r.description || "",
+              time: r.reminding_time
+                ? new Date(r.reminding_time).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "",
+              date: r.reminding_time
+                ? new Date(r.reminding_time).toISOString().split("T")[0]
+                : "",
+              completed: r.status === "done" || r.completed === true,
             }))
           );
         }
 
         // Fetch todos
-        const todosResponse = await fetch(`${API_BASE_URL}/user/${userId}/todos`);
+        const todosResponse = await fetch(
+          `${API_BASE_URL}/user/${userId}/todos`
+        );
         if (todosResponse.ok) {
           const todosData = await todosResponse.json();
           setTodos(
             (todosData.todos || []).map((t: any) => ({
               id: t.todo_id || t.id,
-              task: t.title || t.task || '',
-              priority: t.priority || 'medium',
-              due_date: t.due_date || t.created_at ? new Date(t.created_at).toISOString().split('T')[0] : '',
-              completed: t.status === 'done' || t.completed === true,
-              category: t.category || ''
+              task: t.title || t.task || "",
+              priority: t.priority || "medium",
+              due_date:
+                t.due_date || t.created_at
+                  ? new Date(t.created_at).toISOString().split("T")[0]
+                  : "",
+              completed: t.status === "done" || t.completed === true,
+              category: t.category || "",
             }))
           );
         }
 
         // Fetch meetings
-        const meetingsResponse = await fetch(`${API_BASE_URL}/user/${userId}/meetings`);
+        const meetingsResponse = await fetch(
+          `${API_BASE_URL}/user/${userId}/meetings`
+        );
         if (meetingsResponse.ok) {
           const meetingsData = await meetingsResponse.json();
           setMeetings(
             (meetingsData.meetings || []).map((m: any) => ({
               id: m.email_id || m.meeting_id || m.id,
-              subject: m.subject || '',
-              start_time: m.date && m.time ? new Date(`${m.date}T${m.time}`).toISOString() : m.start_time || '',
-              end_time: m.end_time || '', // If available, otherwise you may want to calculate from duration
+              subject: m.subject || "",
+              start_time:
+                m.date && m.time
+                  ? new Date(`${m.date}T${m.time}`).toISOString()
+                  : m.start_time || "",
+              end_time: m.end_time || "", // If available, otherwise you may want to calculate from duration
               attendees: m.attendees || [],
-              location: m.location || '',
-              description: m.body || m.description || ''
+              location: m.location || "",
+              description: m.body || m.description || "",
             }))
           );
         }
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error("Error fetching dashboard data:", error);
         // Optionally show an error message to the user
       } finally {
         setLoading(false);
@@ -111,34 +139,30 @@ const Dashboard: React.FC = () => {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'high': return 'text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300';
-      case 'medium': return 'text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'low': return 'text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300';
-      default: return 'text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300';
+      case "high":
+        return "text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-300";
+      case "medium":
+        return "text-yellow-600 bg-yellow-100 dark:bg-yellow-900 dark:text-yellow-300";
+      case "low":
+        return "text-green-600 bg-green-100 dark:bg-green-900 dark:text-green-300";
+      default:
+        return "text-gray-600 bg-gray-100 dark:bg-gray-700 dark:text-gray-300";
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   const formatTime = (timeString: string) => {
-    return new Date(timeString).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(timeString).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getTodaysItems = () => {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
     return {
-      reminders: reminders.filter(r => r.date === today && !r.completed),
-      todos: todos.filter(t => t.due_date === today && !t.completed),
-      meetings: meetings.filter(m => m.start_time.startsWith(today))
+      reminders: reminders.filter((r) => r.date === today && !r.completed),
+      todos: todos.filter((t) => t.due_date === today && !t.completed),
+      meetings: meetings.filter((m) => m.start_time.startsWith(today)),
     };
   };
 
@@ -146,21 +170,30 @@ const Dashboard: React.FC = () => {
 
   const refreshData = async () => {
     if (!userId) return;
-    
+
     try {
       setLoading(true);
-      
+
       // Fetch reminders
-      const remindersResponse = await fetch(`${API_BASE_URL}/user/${userId}/reminders`);
+      const remindersResponse = await fetch(
+        `${API_BASE_URL}/user/${userId}/reminders`
+      );
       if (remindersResponse.ok) {
         const remindersData = await remindersResponse.json();
         setReminders(
           (remindersData.reminders || []).map((r: any) => ({
             id: r.reminder_id || r.id,
-            description: r.title || r.description || '',
-            time: r.reminding_time ? new Date(r.reminding_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
-            date: r.reminding_time ? new Date(r.reminding_time).toISOString().split('T')[0] : '',
-            completed: r.status === 'done' || r.completed === true
+            description: r.title || r.description || "",
+            time: r.reminding_time
+              ? new Date(r.reminding_time).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })
+              : "",
+            date: r.reminding_time
+              ? new Date(r.reminding_time).toISOString().split("T")[0]
+              : "",
+            completed: r.status === "done" || r.completed === true,
           }))
         );
       }
@@ -172,33 +205,41 @@ const Dashboard: React.FC = () => {
         setTodos(
           (todosData.todos || []).map((t: any) => ({
             id: t.todo_id || t.id,
-            task: t.title || t.task || '',
-            priority: t.priority || 'medium',
-            due_date: t.due_date || t.created_at ? new Date(t.created_at).toISOString().split('T')[0] : '',
-            completed: t.status === 'done' || t.completed === true,
-            category: t.category || ''
+            task: t.title || t.task || "",
+            priority: t.priority || "medium",
+            due_date:
+              t.due_date || t.created_at
+                ? new Date(t.created_at).toISOString().split("T")[0]
+                : "",
+            completed: t.status === "done" || t.completed === true,
+            category: t.category || "",
           }))
         );
       }
 
       // Fetch meetings
-      const meetingsResponse = await fetch(`${API_BASE_URL}/user/${userId}/meetings`);
+      const meetingsResponse = await fetch(
+        `${API_BASE_URL}/user/${userId}/meetings`
+      );
       if (meetingsResponse.ok) {
         const meetingsData = await meetingsResponse.json();
         setMeetings(
           (meetingsData.meetings || []).map((m: any) => ({
             id: m.email_id || m.meeting_id || m.id,
-            subject: m.subject || '',
-            start_time: m.date && m.time ? new Date(`${m.date}T${m.time}`).toISOString() : m.start_time || '',
-            end_time: m.end_time || '', // If available, otherwise you may want to calculate from duration
+            subject: m.subject || "",
+            start_time:
+              m.date && m.time
+                ? new Date(`${m.date}T${m.time}`).toISOString()
+                : m.start_time || "",
+            end_time: m.end_time || "", // If available, otherwise you may want to calculate from duration
             attendees: m.attendees || [],
-            location: m.location || '',
-            description: m.body || m.description || ''
+            location: m.location || "",
+            description: m.body || m.description || "",
           }))
         );
       }
     } catch (error) {
-      console.error('Error refreshing dashboard data:', error);
+      console.error("Error refreshing dashboard data:", error);
     } finally {
       setLoading(false);
     }
@@ -230,7 +271,7 @@ const Dashboard: React.FC = () => {
             disabled={loading}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            <FaSync className={`mr-2 ${loading ? 'animate-spin' : ''}`} />
+            <FaSync className={`mr-2 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </button>
         </div>
@@ -243,9 +284,11 @@ const Dashboard: React.FC = () => {
                 <FaBell className="h-6 w-6 text-blue-600 dark:text-blue-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Reminders</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Active Reminders
+                </p>
                 <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {reminders.filter(r => !r.completed).length}
+                  {reminders.filter((r) => !r.completed).length}
                 </p>
               </div>
             </div>
@@ -257,9 +300,11 @@ const Dashboard: React.FC = () => {
                 <FaCheckSquare className="h-6 w-6 text-green-600 dark:text-green-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Pending Todos</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Pending Todos
+                </p>
                 <p className="text-2xl font-semibold text-gray-900 dark:text-white">
-                  {todos.filter(t => !t.completed).length}
+                  {todos.filter((t) => !t.completed).length}
                 </p>
               </div>
             </div>
@@ -271,7 +316,9 @@ const Dashboard: React.FC = () => {
                 <FaCalendarAlt className="h-6 w-6 text-purple-600 dark:text-purple-400" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Today's Meetings</p>
+                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  Today's Meetings
+                </p>
                 <p className="text-2xl font-semibold text-gray-900 dark:text-white">
                   {todaysItems.meetings.length}
                 </p>
@@ -292,7 +339,7 @@ const Dashboard: React.FC = () => {
                 </h2>
                 <button
                   onClick={() => {
-                    setModalType('reminder');
+                    setModalType("reminder");
                     setShowAddModal(true);
                   }}
                   className="p-2 rounded-full bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
@@ -318,16 +365,24 @@ const Dashboard: React.FC = () => {
                           type="checkbox"
                           checked={reminder.completed}
                           onChange={() => {
-                            setReminders(prev =>
-                              prev.map(r =>
-                                r.id === reminder.id ? { ...r, completed: !r.completed } : r
+                            setReminders((prev) =>
+                              prev.map((r) =>
+                                r.id === reminder.id
+                                  ? { ...r, completed: !r.completed }
+                                  : r
                               )
                             );
                           }}
                           className="mr-3 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
                         <div>
-                          <p className={`font-medium ${reminder.completed ? 'line-through text-gray-500' : 'text-gray-900 dark:text-white'}`}>
+                          <p
+                            className={`font-medium ${
+                              reminder.completed
+                                ? "line-through text-gray-500"
+                                : "text-gray-900 dark:text-white"
+                            }`}
+                          >
                             {reminder.description}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -360,7 +415,7 @@ const Dashboard: React.FC = () => {
                 </h2>
                 <button
                   onClick={() => {
-                    setModalType('todo');
+                    setModalType("todo");
                     setShowAddModal(true);
                   }}
                   className="p-2 rounded-full bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800 transition-colors"
@@ -386,20 +441,32 @@ const Dashboard: React.FC = () => {
                           type="checkbox"
                           checked={todo.completed}
                           onChange={() => {
-                            setTodos(prev =>
-                              prev.map(t =>
-                                t.id === todo.id ? { ...t, completed: !t.completed } : t
+                            setTodos((prev) =>
+                              prev.map((t) =>
+                                t.id === todo.id
+                                  ? { ...t, completed: !t.completed }
+                                  : t
                               )
                             );
                           }}
                           className="mr-3 rounded border-gray-300 text-green-600 focus:ring-green-500"
                         />
                         <div>
-                          <p className={`font-medium ${todo.completed ? 'line-through text-gray-500' : 'text-gray-900 dark:text-white'}`}>
+                          <p
+                            className={`font-medium ${
+                              todo.completed
+                                ? "line-through text-gray-500"
+                                : "text-gray-900 dark:text-white"
+                            }`}
+                          >
                             {todo.task}
                           </p>
                           <div className="flex items-center space-x-2 mt-1">
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(todo.priority)}`}>
+                            <span
+                              className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(
+                                todo.priority
+                              )}`}
+                            >
                               {todo.priority}
                             </span>
                             {todo.category && (
@@ -435,7 +502,7 @@ const Dashboard: React.FC = () => {
                 </h2>
                 <button
                   onClick={() => {
-                    setModalType('meeting');
+                    setModalType("meeting");
                     setShowAddModal(true);
                   }}
                   className="p-2 rounded-full bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 hover:bg-purple-200 dark:hover:bg-purple-800 transition-colors"
@@ -462,7 +529,8 @@ const Dashboard: React.FC = () => {
                             {meeting.subject}
                           </h3>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            {formatTime(meeting.start_time)} - {formatTime(meeting.end_time)}
+                            {formatTime(meeting.start_time)} -{" "}
+                            {formatTime(meeting.end_time)}
                           </p>
                           {meeting.location && (
                             <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -500,28 +568,45 @@ const Dashboard: React.FC = () => {
           </div>
           <div className="p-6">
             <div className="grid grid-cols-7 gap-1">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="p-2 text-center text-sm font-medium text-gray-500 dark:text-gray-400">
+              {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                <div
+                  key={day}
+                  className="p-2 text-center text-sm font-medium text-gray-500 dark:text-gray-400"
+                >
                   {day}
                 </div>
               ))}
-              
+
               {/* Calendar days would go here */}
               {Array.from({ length: 35 }, (_, i) => {
-                const date = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
+                const date = new Date(
+                  new Date().getFullYear(),
+                  new Date().getMonth(),
+                  1
+                );
                 date.setDate(date.getDate() + i - date.getDay());
-                
-                const isCurrentMonth = date.getMonth() === selectedDate.getMonth();
-                const isToday = date.toDateString() === new Date().toDateString();
-                
+
+                const isCurrentMonth =
+                  date.getMonth() === new Date().getMonth();
+                const isToday =
+                  date.toDateString() === new Date().toDateString();
+
                 return (
                   <div
                     key={i}
                     className={`p-2 min-h-[80px] border border-gray-200 dark:border-gray-700 ${
-                      isCurrentMonth ? 'bg-white dark:bg-gray-800' : 'bg-gray-50 dark:bg-gray-900'
-                    } ${isToday ? 'ring-2 ring-blue-500' : ''}`}
+                      isCurrentMonth
+                        ? "bg-white dark:bg-gray-800"
+                        : "bg-gray-50 dark:bg-gray-900"
+                    } ${isToday ? "ring-2 ring-blue-500" : ""}`}
                   >
-                    <div className={`text-sm ${isCurrentMonth ? 'text-gray-900 dark:text-white' : 'text-gray-400'}`}>
+                    <div
+                      className={`text-sm ${
+                        isCurrentMonth
+                          ? "text-gray-900 dark:text-white"
+                          : "text-gray-400"
+                      }`}
+                    >
                       {date.getDate()}
                     </div>
                     {/* Event indicators would go here */}
@@ -564,4 +649,4 @@ const Dashboard: React.FC = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;

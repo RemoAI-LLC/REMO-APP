@@ -1,124 +1,86 @@
-# RemoAI Agents Frontend
+# REMO Web Maintenance Page
 
-![RemoAI Logo](public/MainLogo.png)
-
-## Overview
-
-The **RemoAI Agents Frontend** is a modern, cross-platform desktop and web application built with React, TypeScript, Vite, and TailwindCSS. It serves as the main interface for interacting with RemoAI's suite of AI-powered agents, supporting both web and Electron desktop environments.
+This is a standalone maintenance page for REMO-WEB that displays when the main application is under maintenance.
 
 ## Features
-- **Dual Platform**: Runs as a web app and as a desktop app (Electron).
-- **Modern UI**: Built with React, TailwindCSS, and modular components.
-- **Authentication**: Integrated with Privy for email, wallet, and Google login.
-- **Internationalization**: Multi-language support using i18next.
-- **Responsive Design**: Mobile-friendly and dark mode support.
-- **Routing**: Client-side routing with React Router.
-- **Reusable Components**: Modular structure for easy extension.
-- **Showcase & Integrations**: Use case demos and integration pages.
 
-## Folder Structure
-```
-agents-frontend/
-├── public/                # Static assets (images, icons, etc.)
-├── src/
-│   ├── assets/            # Images, SVGs, and other assets
-│   ├── components/        # Reusable React components (Sidebar, Topbar, Layout, etc.)
-│   ├── context/           # React context providers
-│   ├── pages/             # Main page components (Home, Usecases, SmartApply, Integrations, Usage)
-│   ├── routes/            # App route definitions
-│   ├── utils/             # Utility functions (e.g., isElectron)
-│   └── ...
-├── desktop/               # Electron main process and certs
-├── scripts/               # Helper scripts (cert generation, etc.)
-├── package.json           # Project metadata and scripts
-├── vite.config.ts         # Vite build configuration
-├── tsconfig*.json         # TypeScript configuration
-└── README.md              # Project documentation
-```
+- Beautiful, responsive maintenance page design
+- Animated progress indicators
+- Real-time status updates
+- Contact information for support
+- Waitlist signup option
 
-## Main Pages & Routes
-- `/` or `/home` - **Home**: Landing page with main features and navigation.
-- `/usecases` - **Usecases**: Showcases of AI agent use cases.
-- `/SmartApply` - **Smart Apply**: AI-powered job application workflow.
-- `/integrations` - **Integrations**: Integration options and guides.
+## Tech Stack
 
-## Visuals & Assets
-- Main logo: `public/MainLogo.png`
-- Animated and static assets: `src/assets/`
+- React 19
+- TypeScript
+- Vite
+- Tailwind CSS v4
+- Framer Motion
+- Lucide React Icons
 
 ## Getting Started
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) (v18+ recommended)
-- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
-
 ### Installation
+
 ```bash
-# Install dependencies
 npm install
-# or
-yarn install
 ```
 
-### Development (Web)
+### Development
+
 ```bash
-npm run dev:web
-# or
-yarn dev:web
+npm run dev
 ```
 
-### Development (Desktop/Electron)
+### Build
+
 ```bash
-npm run dev:desktop
-# or
-yarn dev:desktop
+npm run build
 ```
 
-### Build for Production (Web)
+### Preview
+
 ```bash
-npm run build:web
-# or
-yarn build:web
+npm run preview
 ```
 
-### Build for Production (Desktop/Electron)
-```bash
-npm run build:desktop
-# or
-yarn build:desktop
-```
+## Deployment
 
-### Linting
-```bash
-npm run lint
-# or
-yarn lint
-```
+This maintenance page can be deployed to any static hosting service:
 
-## Environment Variables
-Create a `.env` file in the root with the following (see `.env.example` if available):
-```
-VITE_PRIVY_APP_ID=your-privy-app-id
-```
+- Vercel
+- Netlify
+- GitHub Pages
+- AWS S3
+- Cloudflare Pages
 
-## Tech Stack
-- **React** (with hooks)
-- **TypeScript**
-- **Vite** (build tool)
-- **TailwindCSS** (utility-first CSS)
-- **Electron** (desktop app)
-- **React Router** (routing)
-- **i18next** (internationalization)
-- **Privy** (authentication) 
+## Configuration
 
-## Contributing
-Pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+The maintenance page includes:
 
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+- Estimated maintenance time (currently set to 2-3 hours)
+- Progress indicator (currently set to 75%)
+- Contact email (support@remo.ai)
+- Waitlist signup functionality
 
----
+You can modify these values in the `src/App.tsx` file.
 
-> _RemoAI Agents Frontend — Your gateway to AI-powered productivity, on web and desktop._
+## Usage
 
-The End!!
+When REMO-WEB needs to go into maintenance mode:
+
+1. Deploy this maintenance page to your hosting service
+2. Update your DNS or routing to point to this maintenance page
+3. Update the progress and time estimates as needed
+4. When maintenance is complete, switch back to the main REMO-WEB application
+
+## Customization
+
+The maintenance page can be customized by:
+
+- Changing the color scheme in `src/index.css` using Tailwind v4's `@theme` directive
+- Updating the progress percentage and time estimates
+- Modifying the contact information
+- Adding additional status indicators
+- Customizing the animations and transitions 

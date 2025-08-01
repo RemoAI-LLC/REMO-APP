@@ -3,9 +3,18 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "main": "dist/desktop/main.js",
+  "description": "RemoAI Maintenance App",
+  "author": {
+    "name": "RemoAI"
+  },
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev:web": "vite",
+    "dev:desktop": "concurrently \"cross-env NODE_ENV=development vite\" \"wait-on tcp:5173 && tsc -p desktop/tsconfig.json && cross-env NODE_ENV=development electron .\"",
+    "build:web": "tsc -b && vite build",
+    "generate-certs": "node scripts/generate-certs.js",
+    "copy-certs": "node scripts/copy-certs.js",
+    "build:desktop": "npm run generate-certs && NODE_OPTIONS='--max-old-space-size=8192' npm run build:web && tsc -p desktop/tsconfig.json && npm run copy-certs && electron-builder",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -16,19 +25,26 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
-    "tailwindcss": "^4.1.7"
+    "tailwindcss": "^4.1.7",
+    "selfsigned": "^2.1.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react": "^4.4.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^29.1.0",
+    "electron-builder": "^24.13.3",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "mkcert": "^3.2.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "wait-on": "^7.2.0"
   }
 } 

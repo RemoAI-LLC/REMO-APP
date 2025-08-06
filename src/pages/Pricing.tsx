@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 
-
-type BillingOption = "monthly" | "annual";
+type BillingOption = "monthly" | "yearly";
 
 interface Plan {
   title: string;
@@ -14,7 +13,7 @@ interface Plan {
       button: string;
       link: string;
     };
-    annual: {
+    yearly: {
       price: string;
       original: string;
       features: string[];
@@ -26,68 +25,100 @@ interface Plan {
 
 const plans: Plan[] = [
   {
-    title: "Basic Assistant",
-    description: "Per user/month, billed",
+    title: "EarlyBird",
+    description: "Free for 1 month, then upgrade to continue",
     billing: {
       monthly: {
-        price: "$19.99/mo",
+        price: "$0.00",
         features: [
           "Unlimited messages",
-          "Unlimited access to GPT‑4o, OpenAI o4-mini",
+          "Access to GPT-4o, OpenAI o4-mini",
           "Email/Outlook integration",
           "Google Calendar",
           "Task management tools",
           "Notes",
           "Reminders",
         ],
-        button: "Start Monthly Basic",
-        link: "https://buy.stripe.com/cNi9AT4Gt2Is53McBRafS00",
+        button: "Start for Free",
+        link: "https://buy.stripe.com/9B6eVd2yl1Eo0Nw31hafS05",
       },
-      annual: {
-        price: "$215.89/yr",
-        original: "$239.88",
+      yearly: {
+        price: "$0.00",
+        original: "$0.00",
         features: [
           "Unlimited messages",
-          "Unlimited access to GPT‑4o, OpenAI o4-mini",
+          "Access to GPT-4o, OpenAI o4-mini",
           "Email/Outlook integration",
           "Google Calendar",
           "Task management tools",
           "Notes",
           "Reminders",
         ],
-        button: "Start Annual Basic",
-        link: "https://buy.stripe.com/aFaeVdc8VaaU1RAbxNafS01",
+        button: "Start for Free",
+        link: "https://buy.stripe.com/9B6eVd2yl1Eo0Nw31hafS05",
       },
     },
   },
   {
-    title: "Premium Assistant",
-    description: "Per user/month, billed",
+    title: "Basic",
+    description: "Best for growing startups and growth companies",
     popular: true,
     billing: {
       monthly: {
-        price: "$49.99/mo",
+        price: "$19.99",
         features: [
-          "All features of Basic Assistant",
+          "Everything in EarlyBird",
           "Personalized AI assistant",
           "Workflows & automations",
           "Long-term memory",
           "Full access to all LLM models",
         ],
-        button: "Start Monthly Premium",
+        button: "Sign Up with Basic",
+        link: "https://buy.stripe.com/cNi9AT4Gt2Is53McBRafS00",
+      },
+      
+      yearly: {
+        price: "$215.89",
+        original: "$239.88",
+        features: [
+          "Everything in EarlyBird",
+          "Personalized AI assistant",
+          "Workflows & automations",
+          "Long-term memory",
+          "Full access to all LLM models",
+        ],
+        button: "Sign Up with Basic",
+        link: "https://buy.stripe.com/cNi9AT4Gt2Is53McBRafS00",
+      },
+    },
+  },
+  {
+    title: "Professional",
+    description: "Best for large companies and teams requiring high security",
+    billing: {
+      monthly: {
+        price: "$49.99",
+        features: [
+          "Everything in Professional",
+          "Advanced security features",
+          "Priority support",
+          "Custom integrations",
+          "Dedicated account manager",
+        ],
+        button: "Sign Up with Professional",
         link: "https://buy.stripe.com/fZu00jeh3gzieEm1XdafS02",
       },
-      annual: {
-        price: "$539.98/yr",
+      yearly: {
+        price: "$539.98",
         original: "$599.88",
         features: [
-          "All features of Basic Assistant",
-          "Personalized AI assistant",
-          "Workflows & automations",
-          "Long-term memory",
-          "Full access to all LLM models",
+          "Everything in Professional",
+          "Advanced security features",
+          "Priority support",
+          "Custom integrations",
+          "Dedicated account manager",
         ],
-        button: "Start Annual Premium",
+        button: "Sign Up with Professional",
         link: "https://buy.stripe.com/8x2dR96OBaaU2VE7hxafS03",
       },
     },
@@ -98,101 +129,166 @@ const Pricing: React.FC = () => {
   const [billing, setBilling] = useState<BillingOption>("monthly");
 
   return (
-    <div className="min-h-screen bg-bg dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-20 px-4">
-      <div className="max-w-6xl mx-auto text-center">
-       
-        
-        <h2 className="text-4xl font-bold mb-4">Plans and Pricing</h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-8">
-          Save more with annual billing — up to 10% discount included.
+    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white py-8 sm:py-12 lg:py-20 px-4 sm:px-6 lg:px-8 relative">
+      <div className="max-w-6xl mx-auto text-center relative z-10">
+        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-gray-900 via-gray-700 to-gray-500 dark:from-white dark:via-gray-300 dark:to-gray-500 bg-clip-text text-transparent">
+          Simple and Affordable Pricing Plans
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 text-lg sm:text-xl mb-8 sm:mb-12 px-4">
+          Start tracking and improving your AI assistant experience
         </p>
 
         {/* Billing Toggle */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-1 flex">
+        <div className="flex justify-center mb-8 sm:mb-12">
+          <div className="bg-gray-200 dark:bg-gray-800 rounded-full p-0.5 flex items-center">
             <button
               onClick={() => setBilling("monthly")}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-4 sm:px-6 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 ${
                 billing === "monthly"
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  ? "bg-white dark:bg-white text-gray-900 dark:text-gray-900 shadow-lg"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               Monthly
             </button>
             <button
-              onClick={() => setBilling("annual")}
-              className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
-                billing === "annual"
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+              onClick={() => setBilling("yearly")}
+              className={`px-4 sm:px-6 py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-1 sm:gap-2 ${
+                billing === "yearly"
+                  ? "bg-white dark:bg-white text-gray-900 dark:text-gray-900 shadow-lg"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               Yearly
-              <span className="ml-1 text-xs bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">Save 10%</span>
+              <span className="text-xs bg-green-500 text-white px-1.5 sm:px-2 py-0.5 rounded-full">
+                Save 10%
+              </span>
             </button>
           </div>
         </div>
 
         {/* Plans */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto">
           {plans.map((plan) => {
             const details = plan.billing[billing];
+            const isPopular = plan.popular;
 
             return (
               <div
                 key={plan.title}
-                className="flex flex-col rounded-xl p-6 border bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700 relative shadow-sm min-w-[300px] max-w-md h-full"
+                className="relative bg-white/90 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-gray-200/50 dark:border-gray-700/50 hover:border-gray-400/50 dark:hover:border-white/30 transition-all duration-500 hover:scale-105 group"
+                style={{
+                  boxShadow: "0 0 20px rgba(0, 0, 0, 0.1), 0 0 40px rgba(0, 0, 0, 0.05)",
+                }}
+                onMouseEnter={(e) => {
+                  const isDark = document.documentElement.classList.contains('dark');
+                  if (isDark) {
+                    e.currentTarget.style.boxShadow = "0 0 30px rgba(255, 255, 255, 0.15), 0 0 60px rgba(255, 255, 255, 0.1)";
+                  } else {
+                    e.currentTarget.style.boxShadow = "0 0 30px rgba(0, 0, 0, 0.2), 0 0 60px rgba(0, 0, 0, 0.1)";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  const isDark = document.documentElement.classList.contains('dark');
+                  if (isDark) {
+                    e.currentTarget.style.boxShadow = "0 0 20px rgba(255, 255, 255, 0.05)";
+                  } else {
+                    e.currentTarget.style.boxShadow = "0 0 20px rgba(0, 0, 0, 0.1), 0 0 40px rgba(0, 0, 0, 0.05)";
+                  }
+                }}
               >
-                <h3 className="text-lg font-semibold mb-1">{plan.title}</h3>
+                {/* Card content wrapper */}
+                <div className="relative z-10">
+                  {isPopular && (
+                    <div className="absolute top-[-46px] left-1/2 transform -translate-x-1/2">
+                      <span className="bg-black dark:bg-white text-white dark:text-black text-xs font-medium px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-gray-800 dark:border-gray-300 shadow-lg">
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
 
-                {plan.popular && (
-                  <span className="absolute top-4 right-4 bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-400 text-xs font-bold px-2 py-1 rounded-full">
-                    Best Value
-                  </span>
-                )}
+                  <div className="text-center mb-6">
+                    <h3 className="text-xl sm:text-2xl font-bold mb-2 text-gray-900 dark:text-white">{plan.title}</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 px-2">
+                      {plan.description}
+                    </p>
 
-                {/* Price display */}
-                {billing === "annual" ? (
-                  <div className="flex flex-col items-center mb-2">
-                    <span className="text-xl text-gray-400 dark:text-gray-500 line-through">
-                      {plan.billing.annual.original}
-                    </span>
-                    <span className="text-4xl font-bold text-green-600 dark:text-green-400">
-                      {details.price}
-                    </span>
+                    {/* Price display */}
+                    <div className="mb-6">
+                      {billing === "yearly" && plan.title !== "EarlyBird" ? (
+                        <div className="flex items-baseline justify-center gap-2 sm:gap-3">
+                          <span className="text-base sm:text-lg text-gray-500 dark:text-gray-500 line-through">
+                            ${parseFloat(
+                              plan.billing.monthly.price.replace("$", "")
+                            ) * 12}
+                          </span>
+                          <span className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+                            {details.price}
+                          </span>
+                          <span className="text-gray-600 dark:text-gray-400 text-sm">/year</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-baseline justify-center">
+                          <span className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
+                            {details.price}
+                          </span>
+                          <span className="text-gray-600 dark:text-gray-400 text-sm ml-1">
+                            /month
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* CTA Button */}
+                    <a
+                      href={details.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`block w-full py-2.5 sm:py-3 px-4 sm:px-6 rounded-xl font-medium text-xs sm:text-sm transition-all duration-200 ${
+                        isPopular
+                          ? "bg-black dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-200 text-white dark:text-black shadow-lg hover:shadow-xl"
+                          : plan.title === "EarlyBird"
+                          ? "bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-900 dark:text-white"
+                          : "bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500 text-gray-900 dark:text-white"
+                      }`}
+                    >
+                      {details.button}
+                    </a>
                   </div>
-                ) : (
-                  <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">{details.price}</div>
-                )}
 
-                <ul className="text-sm space-y-2 mb-6 text-left flex-1">
-                  {details.features.map((feature) => (
-                    <li key={feature} className="flex items-center">
-                      <span className="text-green-500 dark:text-green-400 mr-2">✓</span> {feature}
-                    </li>
-                  ))}
-                </ul>
+                  {/* Features separator */}
+                  <div className="flex items-center mb-6">
+                    <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
+                    <span className="px-3 sm:px-4 text-gray-500 dark:text-gray-500 text-xs font-medium">
+                      FEATURES
+                    </span>
+                    <div className="flex-1 h-px bg-gray-300 dark:bg-gray-700"></div>
+                  </div>
 
-                <a
-                  href={details.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`block text-center w-full py-2 rounded-lg font-medium text-sm text-white hover:opacity-90 ${
-                    plan.popular 
-                      ? (billing === "annual" ? 'bg-green-700 dark:bg-green-600 hover:bg-green-800 dark:hover:bg-green-700' : 'bg-gray-900 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600')
-                      : 'bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600'
-                  }`}
-                >
-                  {details.button}
-                </a>
+                  {/* Features list */}
+                  <ul className="space-y-2 sm:space-y-3 text-left">
+                    {details.features.map((feature) => (
+                      <li key={feature} className="flex items-start">
+                        <span className="text-green-500 mr-2 sm:mr-3 mt-0.5 flex-shrink-0">✓</span>
+                        <span className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm leading-relaxed">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             );
           })}
         </div>
         
-        <div className="mt-12 text-gray-400 dark:text-gray-500 text-sm">
-          Have questions about our plans? <a href="mailto:hello@hireremo.com" className="text-blue-600 dark:text-blue-400 underline">Contact support</a>.
+        <div className="mt-12 sm:mt-16 text-gray-600 dark:text-gray-400 text-sm px-4">
+          Have questions about our plans?{" "}
+          <a
+            href="mailto:hello@hireremo.com"
+            className="text-blue-600 dark:text-blue-400 underline hover:text-blue-500 dark:hover:text-blue-300"
+          >
+            Contact support
+          </a>
+          .
         </div>
       </div>
     </div>

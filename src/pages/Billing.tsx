@@ -5,9 +5,9 @@ import {
   FaEnvelope,
   FaCheckCircle,
   FaTimesCircle,
-  FaSpinner,
   FaExternalLinkAlt,
 } from "react-icons/fa";
+import LoadingScreen from "../components/LoadingScreen";
 
 interface BillingModalProps {
   isOpen: boolean;
@@ -139,13 +139,18 @@ const BillingModal: React.FC<BillingModalProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center relative"
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <>
-                      <FaSpinner className="w-4 h-4 mr-2 animate-spin" />
-                      Sending...
+                      <LoadingScreen 
+                        isVisible={isLoading}
+                        message="Sending..."
+                        variant="inline"
+                        size="small"
+                        showLogo={false}
+                      />
                     </>
                   ) : (
                     <>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/outline';
+import { MdOutlineLightMode } from "react-icons/md";
 
 const getInitialTheme = () => {
   if (typeof window === 'undefined') return false;
@@ -44,7 +45,7 @@ const ThemeToggle: React.FC = () => {
         aria-label="Toggle theme"
       >
         {darkMode ? (
-          <SunIcon className="w-5 h-5 text-yellow-400" />
+          <SunIcon className="w-5 h-5 text-white-400" />
         ) : (
           <MoonIcon className="w-5 h-5 text-gray-600" />
         )}

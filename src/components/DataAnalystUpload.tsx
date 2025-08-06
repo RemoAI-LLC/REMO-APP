@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LoadingScreen from './LoadingScreen';
 
 const API_URL = 'http://localhost:8000'; // Change if backend is hosted elsewhere
 
@@ -52,6 +53,17 @@ const DataAnalystUpload: React.FC = () => {
         {loading ? 'Analyzing...' : 'Upload & Analyze'}
       </button>
       {error && <div style={{ color: 'red', marginTop: 12 }}>{error}</div>}
+      
+      {/* Loading Screen */}
+      {loading && (
+        <LoadingScreen 
+          isVisible={loading}
+          message="Analyzing your data..."
+          variant="overlay"
+          size="medium"
+        />
+      )}
+      
       {report && (
         <div style={{ marginTop: 24 }}>
           <h3>Summary</h3>

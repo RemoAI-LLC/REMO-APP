@@ -4,8 +4,8 @@ import {
   FaGoogle,
   FaTimes,
   FaCheck,
-  FaSpinner,
 } from "react-icons/fa";
+import LoadingScreen from "./LoadingScreen";
 
 interface EmailSetupModalProps {
   isOpen: boolean;
@@ -199,11 +199,14 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
         {/* Content */}
         <div className="space-y-4">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <FaSpinner className="animate-spin text-blue-500 text-2xl" />
-              <span className="ml-3 text-gray-600 dark:text-gray-300">
-                Checking connection...
-              </span>
+            <div className="relative py-8">
+              <LoadingScreen 
+                isVisible={isLoading}
+                message="Checking connection..."
+                variant="inline"
+                size="small"
+                showLogo={false}
+              />
             </div>
           ) : authStatus?.authenticated ? (
             /* Connected State */
@@ -278,12 +281,17 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
                 <button
                   onClick={initiateOAuth}
                   disabled={isConnecting}
-                  className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition"
+                  className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 transition relative"
                 >
                   {isConnecting ? (
                     <>
-                      <FaSpinner className="animate-spin" />
-                      <span>Connecting...</span>
+                      <LoadingScreen 
+                        isVisible={isConnecting}
+                        message="Connecting..."
+                        variant="inline"
+                        size="small"
+                        showLogo={false}
+                      />
                     </>
                   ) : (
                     <>

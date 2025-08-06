@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { usePrivy } from "@privy-io/react-auth";
 import { FaGoogle } from "react-icons/fa";
 import EmailSetupModal from "../components/EmailSetupModal";
+import LoadingScreen from "../components/LoadingScreen";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -85,17 +86,25 @@ const Integrations: React.FC = () => {
                 emailConnected ? handleDisconnect : handleEmailSetupClick
               }
               disabled={isLoading}
-              className={`px-4 py-2 rounded-md text-white transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ${
+              className={`px-4 py-2 rounded-md text-white transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed relative ${
                 emailConnected
                   ? "bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700"
                   : "bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
               }`}
             >
-              {isLoading
-                ? "Processing..."
-                : emailConnected
-                ? "Disconnect"
-                : "Connect"}
+              {isLoading ? (
+                <>
+                  <LoadingScreen 
+                    isVisible={isLoading}
+                    message="Processing..."
+                    variant="inline"
+                    size="small"
+                    showLogo={false}
+                  />
+                </>
+              ) : (
+                emailConnected ? "Disconnect" : "Connect"
+              )}
             </button>
           ) : (
             <span className="text-sm text-gray-400 dark:text-gray-500">

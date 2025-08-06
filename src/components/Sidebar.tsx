@@ -12,7 +12,6 @@ import { GrDocumentText } from "react-icons/gr";
 import { FaArrowUp } from "react-icons/fa";
 import { FaTachometerAlt } from "react-icons/fa";
 import ContactUsModal from "../pages/ContactUs";
-import SettingsModal from "./SettingsModal";
 import ThemeToggle from "./ThemeToggle";
 
 interface SidebarProps {
@@ -55,7 +54,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open }) => {
 
   const isSidebarExpanded = hovering;
   const [isContactModalOpen, setContactModalOpen] = useState(false);
-  const [isSettingsModalOpen, setSettingsModalOpen] = useState(false);
 
   // Determine if sidebar should be expanded
   const shouldExpand = isMobile ? open : isSidebarExpanded;
@@ -243,8 +241,8 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open }) => {
           <div className="my-3 border-t border-gray-300 dark:border-gray-600 opacity-50"></div>
 
           <div className="relative group">
-            <button
-              onClick={() => setSettingsModalOpen(true)}
+            <Link
+              to="/settings"
               className="w-full flex items-center px-4 py-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300"
             >
               <div className="min-w-[20px] flex justify-center">
@@ -257,7 +255,7 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open }) => {
               >
                 Settings
               </span>
-            </button>
+            </Link>
             {/* Tooltip */}
             <div
               className={`absolute left-full ml-2 top-1/2 transform -translate-y-1/2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10 ${
@@ -327,12 +325,6 @@ const Sidebar: React.FC<SidebarProps> = ({ onExpandChange, open }) => {
 
           {isContactModalOpen && (
             <ContactUsModal onClose={() => setContactModalOpen(false)} />
-          )}
-          {isSettingsModalOpen && (
-            <SettingsModal
-              isOpen={isSettingsModalOpen}
-              onClose={() => setSettingsModalOpen(false)}
-            />
           )}
         </nav>
 

@@ -280,3 +280,17 @@ a,
     line-height: 1.25rem;
     /* Matches h-5 (20px) */
 }
+
+/* Custom slow spin animation for loading logo */
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+}

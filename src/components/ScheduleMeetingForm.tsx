@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import LoadingScreen from './LoadingScreen';
 
 interface ScheduleMeetingFormProps {
   userId: string;
@@ -120,8 +121,20 @@ const ScheduleMeetingForm: React.FC<ScheduleMeetingFormProps> = ({ userId, organ
         </div>
         {error && <div className="bg-red-100 text-red-700 rounded p-2 text-sm">{error}</div>}
         {success && <div className="bg-green-100 text-green-700 rounded p-2 text-sm">{success}</div>}
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50" disabled={isLoading}>
-          {isLoading ? 'Scheduling...' : 'Schedule Meeting'}
+        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50 relative" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <LoadingScreen 
+                isVisible={isLoading}
+                message="Scheduling..."
+                variant="inline"
+                size="small"
+                showLogo={false}
+              />
+            </>
+          ) : (
+            'Schedule Meeting'
+          )}
         </button>
       </form>
     </div>

@@ -7,7 +7,10 @@ interface TopbarProps {
   sidebarExpanded?: boolean;
 }
 
-const Topbar: React.FC<TopbarProps> = ({ onMenuClick, sidebarExpanded = false }) => {
+const Topbar: React.FC<TopbarProps> = ({
+  onMenuClick,
+  sidebarExpanded = false,
+}) => {
   const { authenticated, ready, user } = usePrivy();
   const { login } = useLogin();
   const { logout } = useLogout();
@@ -84,7 +87,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick, sidebarExpanded = false })
         bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shadow-sm
         transition-all duration-300
         left-0 lg:left-16
-        ${sidebarExpanded ? 'lg:left-64' : ''}
+        ${sidebarExpanded ? "lg:left-64" : ""}
       `}
     >
       {/* Hamburger menu for mobile */}
@@ -103,7 +106,9 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick, sidebarExpanded = false })
         </div>
       </div>
 
-      <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">REMO</h1>
+      <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+        REMO
+      </h1>
       <div className="flex items-center gap-4">
         {ready && authenticated ? (
           <div className="relative" ref={dropdownRef}>
@@ -119,7 +124,7 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick, sidebarExpanded = false })
                     className="w-8 h-8 rounded-full object-cover border border-white"
                   />
                 ) : (
-                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-600 text-white font-semibold text-sm uppercase">
+                  <div className="w-8 h-8 flex items-center justify-center rounded-full bg-black text-white font-semibold text-sm uppercase">
                     {getUserInitial()}
                   </div>
                 )}
@@ -134,7 +139,6 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick, sidebarExpanded = false })
                 User menu
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-b-4 border-transparent border-b-gray-900"></div>
               </div>
-
             </div>
 
             {isUserDropdownOpen && (
@@ -165,14 +169,14 @@ const Topbar: React.FC<TopbarProps> = ({ onMenuClick, sidebarExpanded = false })
           <div className="relative group">
             <button
               onClick={() => login()}
-              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="px-4 py-2 text-sm font-medium text-white bg-black dark:bg-[#fafafa dark:text-white rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900"
             >
               Get Started
             </button>
             {/* Tooltip */}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
+            <div className="absolute top-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap z-10">
               Sign in to your account
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+              <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
             </div>
           </div>
         )}

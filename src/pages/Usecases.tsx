@@ -18,12 +18,15 @@ const Usecases = () => {
   }
 
   return (
-    <section id="usecases-section" className="w-full py-20 bg-white dark:bg-gray-900 text-center">
+    <section
+      id="usecases-section"
+      className="w-full py-20 bg-white dark:bg-gray-900 text-center"
+    >
       {/* Title */}
       <h2 className="text-3xl sm:text-4xl font-extrabold mb-4 text-text">
         {usecases.title}
       </h2>
-      <p className="mb-8 text-lg max-w-2xl mx-auto text-subtle">
+      <p className="mb-8 text-lg max-w-2xl mx-auto text-text">
         {usecases.subtitle}
       </p>
 
@@ -48,7 +51,11 @@ const Usecases = () => {
                   rel="noopener noreferrer"
                   initial={variant}
                   animate={{ x: 0, y: 0, opacity: 1 }}
-                  transition={{ duration: 0.6, delay: (colIdx * 3 + i) * 0.05, ease: "easeOut" }}
+                  transition={{
+                    duration: 0.6,
+                    delay: (colIdx * 3 + i) * 0.05,
+                    ease: "easeOut",
+                  }}
                 >
                   <div className="relative bg-white dark:bg-black rounded-xl overflow-hidden shadow-md dark:shadow-[0_4px_20px_rgba(255,255,255,0.05)] hover:shadow-xl dark:hover:shadow-[0_6px_30px_rgba(255,255,255,0.1)] transition-all duration-300 transform hover:scale-105 flex flex-col p-4">
                     <h3 className="font-semibold text-lg mb-2 text-text dark:text-white">

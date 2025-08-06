@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaEnvelope, FaEnvelopeOpenText } from "react-icons/fa";
+import LoadingScreen from "./LoadingScreen";
 
 interface EmailStatusIndicatorProps {
   userId: string;
@@ -57,8 +58,13 @@ const EmailStatusIndicator: React.FC<EmailStatusIndicatorProps> = ({
   if (isLoading) {
     return (
       <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400">
-        <div className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
-        <span className="text-xs">Checking email...</span>
+        <LoadingScreen 
+          isVisible={isLoading}
+          message="Checking email..."
+          variant="inline"
+          size="small"
+          showLogo={false}
+        />
       </div>
     );
   }

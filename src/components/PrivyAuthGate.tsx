@@ -2,6 +2,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // ✅ Import navigate + location
 import { useAccess } from "../context/AccessContext";
+import LoadingScreen from "./LoadingScreen";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL ||
@@ -111,18 +112,9 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
     setSubscription,
   ]);
 
-  // Show loading state
+  // Show loading state with our custom loading screen
   if (!ready || checkingAccess) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-medium">
-            {checkingAccess ? "Verifying your subscription..." : "Loading..."}
-          </p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen onLoadingComplete={() => {}} duration={1000} />;
   }
 
   // Show login error

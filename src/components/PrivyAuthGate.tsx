@@ -10,7 +10,7 @@ const API_BASE_URL =
   "http://localhost:8000"; // local
 
 const STRIPE_BACKEND_URL =
-  import.meta.env.VITE_STRIPE_BACKEND_URL ||
+  import.meta.env.VITE_STRIPE_API_URL ||
   (window.location.hostname === "localhost"
     ? "http://localhost:3001" // local
     : "https://stripe-backend-4ian.onrender.com"); // Render production

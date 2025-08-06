@@ -39,7 +39,7 @@ const BillingModal: React.FC<BillingModalProps> = ({
 
     try {
       const STRIPE_BACKEND_URL =
-        import.meta.env.VITE_STRIPE_BACKEND_URL ||
+        import.meta.env.VITE_STRIPE_API_URL ||
         (window.location.hostname === "localhost"
           ? "http://localhost:3001"
           : "https://stripe-backend-4ian.onrender.com");

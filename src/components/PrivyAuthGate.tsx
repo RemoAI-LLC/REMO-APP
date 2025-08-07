@@ -12,7 +12,7 @@ const STRIPE_BACKEND_URL =
   import.meta.env.VITE_STRIPE_API_URL ||
   (window.location.hostname === "localhost"
     ? "http://localhost:3001" // local
-    : "https://34.207.217.9:3001"); // EC2 production (HTTPS)
+    : "http://34.207.217.9:3001"); // EC2 production (HTTP)
 
 // Helper function to check if subscription status allows access
 const isSubscriptionActive = (status: string): boolean => {
@@ -94,6 +94,8 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
             "data.status:",
             data.status
           );
+          console.log("🔍 Setting hasAccess to:", hasValidAccess);
+          console.log("🔍 Setting subscription to:", data);
           setHasAccess(hasValidAccess);
           setSubscription(data); // Store the full subscription data
           // Do not redirect or show error here; let ProtectedRoute handle it

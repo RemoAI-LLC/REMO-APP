@@ -8,6 +8,10 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({
   const { hasAccess, subscription } = useSubscriptionAccess();
   const location = useLocation();
 
+  console.log("🔍 ProtectedRoute - hasAccess:", hasAccess);
+  console.log("🔍 ProtectedRoute - subscription:", subscription);
+  console.log("🔍 ProtectedRoute - current path:", location.pathname);
+
   // Temporarily allow access to data-analyst for testing
   if (location.pathname === "/data-analyst") {
     return <>{children}</>;

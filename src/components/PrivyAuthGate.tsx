@@ -14,11 +14,6 @@ const STRIPE_BACKEND_URL =
     ? "http://localhost:3001" // local
     : "http://34.207.217.9:3001"); // EC2 production (HTTP)
 
-// Helper function to check if subscription status allows access
-const isSubscriptionActive = (status: string): boolean => {
-  return status === "active" || status === "trialing";
-};
-
 const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -29,7 +24,7 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   const warmupSent = useRef(false);
   const navigate = useNavigate();
   const location = useLocation();
-  const { setHasAccess, setSubscription } = useAccess();
+  const { setHasAccess, setSubscription, isSubscriptionActive } = useAccess();
 
   const userId = user?.id;
   const userEmail = user?.email?.address;
@@ -96,6 +91,10 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
           );
           console.log("🔍 Setting hasAccess to:", hasValidAccess);
           console.log("🔍 Setting subscription to:", data);
+          console.log(
+            "🔍 isSubscriptionActive function result:",
+            isSubscriptionActive(data.status)
+          );
           setHasAccess(hasValidAccess);
           setSubscription(data); // Store the full subscription data
           // Do not redirect or show error here; let ProtectedRoute handle it

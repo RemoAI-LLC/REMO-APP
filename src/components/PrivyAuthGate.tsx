@@ -12,7 +12,7 @@ const STRIPE_BACKEND_URL =
   import.meta.env.VITE_STRIPE_API_URL ||
   (window.location.hostname === "localhost"
     ? "http://localhost:3001" // local
-    : "http://34.207.217.9:3001"); // EC2 production
+    : "https://34.207.217.9:3001"); // EC2 production (HTTPS)
 
 // Helper function to check if subscription status allows access
 const isSubscriptionActive = (status: string): boolean => {

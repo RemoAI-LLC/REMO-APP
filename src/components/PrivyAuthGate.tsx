@@ -12,7 +12,7 @@ const STRIPE_BACKEND_URL =
   import.meta.env.VITE_STRIPE_API_URL ||
   (window.location.hostname === "localhost"
     ? "http://localhost:3001" // local
-    : "https://stripe-backend-4ian.onrender.com"); // Render production
+    : "http://34.207.217.9:3001"); // EC2 production
 
 // Helper function to check if subscription status allows access
 const isSubscriptionActive = (status: string): boolean => {
@@ -68,17 +68,32 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
     if (authenticated && ready && !warmupSent.current && userEmail) {
       warmupSent.current = true;
       setCheckingAccess(true);
+      console.log("🔍 Checking subscription for email:", userEmail);
+      console.log("🔍 Using Stripe backend URL:", STRIPE_BACKEND_URL);
+
       fetch(`${STRIPE_BACKEND_URL}/api/user-status`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: userEmail }),
       })
-        .then((res) => res.json())
+        .then((res) => {
+          console.log("🔍 API response status:", res.status);
+          return res.json();
+        })
         .then((data) => {
+          console.log("🔍 API response data:", data);
           setCheckingAccess(false);
           // Only set access state, never show error UI
           const hasValidAccess =
             data.hasAccess && isSubscriptionActive(data.status);
+          console.log(
+            "🔍 hasValidAccess:",
+            hasValidAccess,
+            "data.hasAccess:",
+            data.hasAccess,
+            "data.status:",
+            data.status
+          );
           setHasAccess(hasValidAccess);
           setSubscription(data); // Store the full subscription data
           // Do not redirect or show error here; let ProtectedRoute handle it

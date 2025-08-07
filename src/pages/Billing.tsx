@@ -42,7 +42,7 @@ const BillingModal: React.FC<BillingModalProps> = ({
         import.meta.env.VITE_STRIPE_API_URL ||
         (window.location.hostname === "localhost"
           ? "http://localhost:3001"
-          : "https://stripe-backend-4ian.onrender.com");
+          : "http://34.207.217.9:3001");
 
       const response = await fetch(
         `${STRIPE_BACKEND_URL}/api/send-portal-link`,

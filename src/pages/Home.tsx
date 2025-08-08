@@ -523,20 +523,20 @@ const Home: React.FC = () => {
         }
       }
 
-      // Prepare JSON for normal chat
+      // Prepare FormData for normal chat (backend expects Form fields)
+      const form = new FormData();
+      form.append("message", inputText);
+      form.append(
+        "conversation_history",
+        JSON.stringify(
+          messages.map((msg) => ({ role: msg.role, content: msg.content }))
+        )
+      );
+      if (userId) form.append("user_id", userId);
+
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: inputText,
-          conversation_history: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          user_id: userId,
-        }),
+        body: form,
       });
 
       if (!response.ok) {
@@ -604,19 +604,18 @@ const Home: React.FC = () => {
 
     try {
       console.log("Sending voice message to API:", voiceText);
+      const form = new FormData();
+      form.append("message", voiceText);
+      form.append(
+        "conversation_history",
+        JSON.stringify(
+          messages.map((msg) => ({ role: msg.role, content: msg.content }))
+        )
+      );
+      if (userId) form.append("user_id", userId);
       const response = await fetch(`${API_BASE_URL}/chat`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          message: voiceText,
-          conversation_history: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          user_id: userId, // Include user ID for user-specific functionality
-        }),
+        body: form,
       });
 
       if (!response.ok) {

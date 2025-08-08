@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useSubscriptionAccess } from "../hooks/useSubscriptionAccess";
 
 type BillingOption = "monthly" | "annual";
 
@@ -96,12 +97,21 @@ const plans: Plan[] = [
 
 const Pricing: React.FC = () => {
   const [billing, setBilling] = useState<BillingOption>("monthly");
+  const { hasAccess } = useSubscriptionAccess();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Auto-redirect away from pricing if the user already has access
+  useEffect(() => {
+    if (hasAccess) {
+      const redirectTo = (location.state as any)?.from?.pathname || "/";
+      navigate(redirectTo, { replace: true });
+    }
+  }, [hasAccess, navigate, location.state]);
 
   return (
     <div className="min-h-screen bg-bg dark:bg-gray-900 text-gray-900 dark:text-gray-100 py-20 px-4">
       <div className="max-w-6xl mx-auto text-center">
-       
-        
         <h2 className="text-4xl font-bold mb-4">Plans and Pricing</h2>
         <p className="text-gray-500 dark:text-gray-400 mb-8">
           Save more with annual billing — up to 10% discount included.
@@ -114,8 +124,8 @@ const Pricing: React.FC = () => {
               onClick={() => setBilling("monthly")}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
                 billing === "monthly"
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
               }`}
             >
               Monthly
@@ -124,12 +134,14 @@ const Pricing: React.FC = () => {
               onClick={() => setBilling("annual")}
               className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
                 billing === "annual"
-                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                  ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
               }`}
             >
               Yearly
-              <span className="ml-1 text-xs bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">Save 10%</span>
+              <span className="ml-1 text-xs bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 px-2 py-0.5 rounded-full">
+                Save 10%
+              </span>
             </button>
           </div>
         </div>
@@ -163,13 +175,18 @@ const Pricing: React.FC = () => {
                     </span>
                   </div>
                 ) : (
-                  <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">{details.price}</div>
+                  <div className="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">
+                    {details.price}
+                  </div>
                 )}
 
                 <ul className="text-sm space-y-2 mb-6 text-left flex-1">
                   {details.features.map((feature) => (
                     <li key={feature} className="flex items-center">
-                      <span className="text-green-500 dark:text-green-400 mr-2">✓</span> {feature}
+                      <span className="text-green-500 dark:text-green-400 mr-2">
+                        ✓
+                      </span>{" "}
+                      {feature}
                     </li>
                   ))}
                 </ul>
@@ -179,9 +196,11 @@ const Pricing: React.FC = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`block text-center w-full py-2 rounded-lg font-medium text-sm text-white hover:opacity-90 ${
-                    plan.popular 
-                      ? (billing === "annual" ? 'bg-green-700 dark:bg-green-600 hover:bg-green-800 dark:hover:bg-green-700' : 'bg-gray-900 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600')
-                      : 'bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600'
+                    plan.popular
+                      ? billing === "annual"
+                        ? "bg-green-700 dark:bg-green-600 hover:bg-green-800 dark:hover:bg-green-700"
+                        : "bg-gray-900 dark:bg-gray-700 hover:bg-gray-700 dark:hover:bg-gray-600"
+                      : "bg-blue-600 dark:bg-blue-500 hover:bg-blue-700 dark:hover:bg-blue-600"
                   }`}
                 >
                   {details.button}
@@ -190,9 +209,16 @@ const Pricing: React.FC = () => {
             );
           })}
         </div>
-        
+
         <div className="mt-12 text-gray-400 dark:text-gray-500 text-sm">
-          Have questions about our plans? <a href="mailto:hello@hireremo.com" className="text-blue-600 dark:text-blue-400 underline">Contact support</a>.
+          Have questions about our plans?{" "}
+          <a
+            href="mailto:hello@hireremo.com"
+            className="text-blue-600 dark:text-blue-400 underline"
+          >
+            Contact support
+          </a>
+          .
         </div>
       </div>
     </div>

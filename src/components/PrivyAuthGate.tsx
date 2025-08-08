@@ -3,16 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // ✅ Import navigate + location
 import { useAccess } from "../context/AccessContext";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL ||
-  // "https://remo-server.onrender.com" || // Render production
-  "http://localhost:8000"; // local
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 const STRIPE_BACKEND_URL =
-  import.meta.env.VITE_STRIPE_API_URL ||
-  (window.location.hostname === "localhost"
-    ? "http://localhost:3001" // local
-    : "http://34.207.217.9:3001"); // EC2 production (HTTP)
+  import.meta.env.VITE_STRIPE_API_URL || "http://localhost:3001";
 
 const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   children,

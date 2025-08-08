@@ -1,7 +1,8 @@
 import { usePrivy } from "@privy-io/react-auth";
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom"; // ✅ Import navigate + location
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAccess } from "../context/AccessContext";
+import { makeApiRequest } from "../utils/apiProxy";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 const STRIPE_BACKEND_URL = import.meta.env.VITE_STRIPE_API_URL;
@@ -58,16 +59,14 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
       console.log("🔍 Checking subscription for email:", userEmail);
       console.log("🔍 Using Stripe backend URL:", STRIPE_BACKEND_URL);
 
-      fetch(`${STRIPE_BACKEND_URL}/api/user-status`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: userEmail }),
-      })
-        .then((res) => {
-          console.log("🔍 API response status:", res.status);
-          return res.json();
-        })
-        .then((data) => {
+      const checkSubscription = async () => {
+        try {
+          const data = await makeApiRequest(
+            `${STRIPE_BACKEND_URL}/api/user-status`,
+            "POST",
+            { email: userEmail }
+          );
+
           console.log("🔍 API response data:", data);
           setCheckingAccess(false);
           // Only set access state, never show error UI
@@ -90,13 +89,16 @@ const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
           setHasAccess(hasValidAccess);
           setSubscription(data); // Store the full subscription data
           // Do not redirect or show error here; let ProtectedRoute handle it
-        })
-        .catch(() => {
+        } catch (error) {
+          console.error("🔍 Subscription check failed:", error);
           setCheckingAccess(false);
           setHasAccess(false);
           setSubscription(null);
           // Do not show error UI; let ProtectedRoute handle it
-        });
+        }
+      };
+
+      checkSubscription();
       // Optionally: warm up chat endpoint
       fetch(`${API_BASE_URL}/chat`, {
         method: "POST",

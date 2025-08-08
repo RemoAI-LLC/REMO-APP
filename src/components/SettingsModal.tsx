@@ -53,7 +53,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showDeleteWarning, setShowDeleteWarning] = useState(false);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   // Prevent background scroll when modal is open
   useEffect(() => {
@@ -105,8 +105,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
 
     setIsLoading(true);
     try {
-      const stripeApiUrl =
-        import.meta.env.VITE_STRIPE_API_URL || "http://localhost:3001";
+      const stripeApiUrl = import.meta.env.VITE_STRIPE_API_URL;
       const userEmail = user?.email?.address;
       // Use new endpoint: DELETE /api/user-subscriptions/:email
       if (userEmail) {

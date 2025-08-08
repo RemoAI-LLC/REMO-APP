@@ -31,7 +31,7 @@ const EmailSetupModal: React.FC<EmailSetupModalProps> = ({
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   // Check authentication status when modal opens
   useEffect(() => {

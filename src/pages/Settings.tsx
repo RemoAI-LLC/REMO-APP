@@ -69,10 +69,8 @@ const Settings: React.FC = () => {
 
     setIsDeleting(true);
     try {
-      const API_BASE_URL =
-        import.meta.env.VITE_API_URL || "http://localhost:8000";
-      const stripeApiUrl =
-        import.meta.env.VITE_STRIPE_API_URL || "http://localhost:3001";
+      const API_BASE_URL = import.meta.env.VITE_API_URL;
+      const stripeApiUrl = import.meta.env.VITE_STRIPE_API_URL;
       const userEmail = user?.email?.address;
 
       // Step 1: Cancel subscription first

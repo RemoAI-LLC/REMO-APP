@@ -23,7 +23,7 @@ const EmailStatusIndicator: React.FC<EmailStatusIndicatorProps> = ({
   const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  const API_BASE_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     if (userId) {

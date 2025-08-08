@@ -38,11 +38,7 @@ const BillingModal: React.FC<BillingModalProps> = ({
     setError(null);
 
     try {
-      const STRIPE_BACKEND_URL =
-        import.meta.env.VITE_STRIPE_API_URL ||
-        (window.location.hostname === "localhost"
-          ? "http://localhost:3001"
-          : "https://34.207.217.9:3001");
+      const STRIPE_BACKEND_URL = import.meta.env.VITE_STRIPE_API_URL;
 
       const response = await fetch(
         `${STRIPE_BACKEND_URL}/api/send-portal-link`,

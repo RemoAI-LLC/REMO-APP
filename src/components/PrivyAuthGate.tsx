@@ -3,10 +3,8 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // ✅ Import navigate + location
 import { useAccess } from "../context/AccessContext";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
-
-const STRIPE_BACKEND_URL =
-  import.meta.env.VITE_STRIPE_API_URL || "http://localhost:3001";
+const API_BASE_URL = import.meta.env.VITE_API_URL;
+const STRIPE_BACKEND_URL = import.meta.env.VITE_STRIPE_API_URL;
 
 const PrivyAuthGate: React.FC<{ children: React.ReactNode }> = ({
   children,
